@@ -78,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create user
       const newUser = await storage.createUser({
         username: validatedData.username,
-        email: validatedData.email,
+        email: validatedData.email.toLowerCase(),
         password: hashedPassword,
         name: validatedData.name,
         type: validatedData.type,
@@ -158,8 +158,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = loginSchema.parse(req.body);
 
-      // Find user by email
-      const user = await storage.getUserByEmail(validatedData.email);
+      // Find user by email (case-insensitive)
+      const user = await storage.getUserByEmail(validatedData.email.toLowerCase());
       if (!user) {
         return res.status(401).json({ message: "Email ou senha incorretos" });
       }
@@ -756,8 +756,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admins não podem criar usuários do tipo system" });
       }
 
-      // Verificar se email já existe
-      const existingUser = await storage.getUserByEmail(email);
+      // Verificar se email já existe (case-insensitive)
+      const existingUser = await storage.getUserByEmail(email.toLowerCase());
       if (existingUser) {
         return res.status(400).json({ message: "Email já está em uso" });
       }
@@ -766,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newUser = await storage.createUser({
         username: nome,
-        email,
+        email: email.toLowerCase(),
         password: hashedPassword,
         name: nome,
         type: tipo,
