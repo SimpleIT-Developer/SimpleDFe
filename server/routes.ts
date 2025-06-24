@@ -9,6 +9,7 @@ import { mysqlPool, testMysqlConnection } from "./mysql-config";
 import { db } from "./db";
 import { sendWelcomeEmail } from "./email-service";
 import { sendWelcomeEmail as sendWelcomeEmailResend } from "./resend-service";
+
 import { eq, ilike, or, and, count, desc, asc } from "drizzle-orm";
 import { generateNfeRelatorioPDF } from "./nfe-relatorio-generator";
 import { generateNfseRelatorioPDF } from "./nfse-relatorio-generator";
@@ -210,6 +211,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get user error:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Endpoint para testar envio de email
+  app.post("/api/auth/test-email", authenticateToken, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      console.log(`Testando envio de email para usuário: ${user.email}`);
+
+      const emailData = {
+        nome: user.name,
+        email: user.email,
+        senha: '[SENHA_TESTE]',
+        codigoCliente: 'TESTE123',
+        nomeEmpresa: 'Empresa Teste'
+      };
+
+      const emailSent = await sendWelcomeEmailResend(emailData);
+
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: "Email de teste enviado com sucesso",
+          email: user.email 
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Falha no envio do email de teste" 
+        });
+      }
+    } catch (error) {
+      console.error("Erro no teste de email:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Erro interno do servidor ao testar email" 
+      });
     }
   });
 
