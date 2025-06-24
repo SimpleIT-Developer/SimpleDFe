@@ -108,7 +108,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: newUser.email,
             senha: validatedData.password,
             codigoCliente,
-            nomeEmpresa
+            nomeEmpresa,
+            baseUrl: 'https://www.simpledfe.com.br'
           };
 
           const emailSent = await sendWelcomeEmailResend(emailData);
@@ -795,7 +796,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             email: newUser.email,
             senha: password, // Senha original antes do hash
             codigoCliente,
-            nomeEmpresa
+            nomeEmpresa,
+            baseUrl: 'https://www.simpledfe.com.br'
           };
 
           const emailSent = await sendWelcomeEmailResend(emailData);

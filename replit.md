@@ -125,6 +125,9 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
+- June 24, 2025: Correção da URL nos emails
+  - Corrigida URL nos templates de email para usar www.simpledfe.com.br como padrão fixo
+  - Removida captura dinâmica da URL, mantendo URL padrão
 - June 24, 2025: Melhorias no sistema de email
   - Corrigido nome da marca de "SimpleDFE" para "SimpleDFe" em todos os templates
   - Atualizada URL de acesso para simpledfe.simpleit.app.br

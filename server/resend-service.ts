@@ -6,6 +6,7 @@ interface WelcomeEmailData {
   senha: string;
   codigoCliente?: string;
   nomeEmpresa?: string;
+  baseUrl?: string;
 }
 
 function createWelcomeEmailHTML(data: WelcomeEmailData): string {
@@ -180,7 +181,7 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
                 </div>
                 <div class="access-item">
                     <span class="access-label">URL:</span>
-                    <a href="https://simpledfe.simpleit.app.br" class="url">simpledfe.simpleit.app.br</a>
+                    <a href="${data.baseUrl || 'https://www.simpledfe.com.br'}" class="url">${data.baseUrl ? data.baseUrl.replace(/^https?:\/\//, '') : 'www.simpledfe.com.br'}</a>
                 </div>
                 ${data.codigoCliente ? `<div class="access-item">
                     <span class="access-label">Código:</span>
@@ -264,7 +265,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean>
 Seus dados de acesso:
 Usuário: ${data.email}
 Senha: ${data.senha}
-URL: simpledfe.simpleit.app.br
+URL: ${data.baseUrl ? data.baseUrl.replace(/^https?:\/\//, '') : 'www.simpledfe.com.br'}
 ${data.codigoCliente ? `Código do Cliente: ${data.codigoCliente}` : ''}
 
 Por segurança, altere sua senha após o primeiro acesso.
