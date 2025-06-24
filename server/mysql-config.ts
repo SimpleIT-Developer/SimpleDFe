@@ -3,8 +3,8 @@ import mysql from 'mysql2/promise';
 // Configurações do MySQL - arquivo único para melhor manutenção
 const mysqlConfig = {
   host: "45.132.157.52",
-  database: "u994990997_roboeac",
-  user: "u994990997_roboeac",
+  database: "u994990997_robolbv",
+  user: "u994990997_robolbv",
   password: "@n@R@quel110987",
   waitForConnections: true,
   connectionLimit: 10,
