@@ -99,9 +99,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Enviar email de boas-vindas em background
-      (async () => {
+      setImmediate(async () => {
         try {
-          console.log(`Iniciando envio de email de boas-vindas para: ${newUser.email}`);
+          console.log(`📧 Iniciando envio de email de boas-vindas para: ${newUser.email}`);
           
           const emailData = {
             nome: newUser.name,
@@ -116,12 +116,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (emailSent) {
             console.log(`✅ Email de boas-vindas enviado com sucesso para: ${newUser.email}`);
           } else {
-            console.warn(`⚠️ Falha no envio do email de boas-vindas para: ${newUser.email}`);
+            console.error(`❌ Falha no envio do email de boas-vindas para: ${newUser.email}`);
           }
         } catch (error) {
-          console.error(`❌ Erro ao enviar email de boas-vindas para ${newUser.email}:`, error);
+          console.error(`❌ Erro crítico ao enviar email para ${newUser.email}:`, error);
         }
-      })();
+      });
 
       // Generate JWT token
       const token = jwt.sign(
@@ -785,15 +785,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('Erro ao buscar código do cliente:', error);
       }
 
-      // Enviar email de boas-vindas com Resend em background
-      sendWelcomeEmailResend({
-        nome: newUser.name,
-        email: newUser.email,
-        senha: password, // Senha original antes do hash
-        codigoCliente,
-        nomeEmpresa
-      }).catch(error => {
-        console.error('Erro ao enviar email de boas-vindas:', error);
+      // Enviar email de boas-vindas em background
+      setImmediate(async () => {
+        try {
+          console.log(`📧 Iniciando envio de email de boas-vindas para: ${newUser.email}`);
+          
+          const emailData = {
+            nome: newUser.name,
+            email: newUser.email,
+            senha: password, // Senha original antes do hash
+            codigoCliente,
+            nomeEmpresa
+          };
+
+          const emailSent = await sendWelcomeEmailResend(emailData);
+          
+          if (emailSent) {
+            console.log(`✅ Email de boas-vindas enviado com sucesso para: ${newUser.email}`);
+          } else {
+            console.error(`❌ Falha no envio do email de boas-vindas para: ${newUser.email}`);
+          }
+        } catch (error) {
+          console.error(`❌ Erro crítico ao enviar email para ${newUser.email}:`, error);
+        }
       });
 
       res.status(201).json({ 

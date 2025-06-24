@@ -230,32 +230,34 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
 export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
   // Validação dos dados obrigatórios
   if (!data.nome || !data.email) {
-    console.error('Dados obrigatórios não fornecidos - nome e email são necessários');
+    console.error('❌ Dados obrigatórios não fornecidos - nome e email são necessários');
     return false;
   }
 
   if (!process.env.RESEND_API_KEY) {
-    console.error('RESEND_API_KEY não configurada - email não pode ser enviado');
+    console.error('❌ RESEND_API_KEY não configurada - email não pode ser enviado');
     return false;
   }
 
   try {
+    console.log(`📧 Preparando envio de email para: ${data.email}`);
+    
     const resend = new Resend(process.env.RESEND_API_KEY);
     const htmlContent = createWelcomeEmailHTML(data);
     
     // Validar email antes de enviar
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
-      console.error(`Email inválido fornecido: ${data.email}`);
+      console.error(`❌ Email inválido fornecido: ${data.email}`);
       return false;
     }
 
-    console.log(`Enviando email de boas-vindas para: ${data.email}`);
+    console.log(`📤 Enviando email de boas-vindas para: ${data.email}`);
     
-    const result = await resend.emails.send({
+    const emailPayload = {
       from: 'SimpleDFe <simpledfe@simpleit.com.br>',
       to: [data.email],
-      subject: `🎉 Bem-vindo ao SimpleDFe${data.nomeEmpresa ? ` – ${data.nomeEmpresa}` : ''}`,
+      subject: `Bem-vindo ao SimpleDFe${data.nomeEmpresa ? ` – ${data.nomeEmpresa}` : ''}`,
       html: htmlContent,
       text: `Bem-vindo ao SimpleDFe, ${data.nome}! 
       
@@ -270,29 +272,36 @@ Por segurança, altere sua senha após o primeiro acesso.
 Equipe SimpleDFe
 contato@simpledfe.com.br
 (11) 94498-7584`
-    });
+    };
+
+    const result = await resend.emails.send(emailPayload);
 
     if (result.data?.id) {
       console.log(`✅ Email enviado com sucesso - ID: ${result.data.id} para: ${data.email}`);
       return true;
-    } else {
-      console.warn(`⚠️ Email enviado mas sem ID de confirmação para: ${data.email}`);
+    } else if (result.error) {
+      console.error(`❌ Erro do Resend:`, result.error);
       return false;
+    } else {
+      console.warn(`⚠️ Email enviado mas resposta inesperada:`, result);
+      return true; // Considerar sucesso se não há erro explícito
     }
   } catch (error: any) {
-    console.error(`❌ Erro ao enviar email para ${data.email}:`, {
-      message: error.message,
-      name: error.name,
-      stack: error.stack?.split('\n')[0] // Primeira linha do stack trace
-    });
+    console.error(`❌ Erro crítico ao enviar email para ${data.email}:`);
+    console.error(`   Mensagem: ${error.message}`);
+    console.error(`   Tipo: ${error.name}`);
+    
+    if (error.response?.data) {
+      console.error(`   Resposta da API:`, error.response.data);
+    }
     
     // Tratamento de erros específicos
-    if (error.message?.includes('API key')) {
+    if (error.message?.includes('API key') || error.message?.includes('Unauthorized')) {
       console.error('🔑 Erro de autenticação - verifique a RESEND_API_KEY');
-    } else if (error.message?.includes('rate limit')) {
+    } else if (error.message?.includes('rate limit') || error.message?.includes('Too Many Requests')) {
       console.error('⏱️ Limite de envio atingido - tente novamente mais tarde');
-    } else if (error.message?.includes('domain')) {
-      console.error('🌐 Erro de domínio - verifique a configuração do domínio no Resend');
+    } else if (error.message?.includes('domain') || error.message?.includes('sender')) {
+      console.error('🌐 Erro de domínio - verifique a configuração do remetente no Resend');
     }
     
     return false;
