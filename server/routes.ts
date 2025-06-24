@@ -97,16 +97,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('Erro ao buscar código do cliente:', error);
       }
 
-      // Enviar email de boas-vindas com Resend em background
-      sendWelcomeEmailResend({
-        nome: newUser.name,
-        email: newUser.email,
-        senha: validatedData.password,
-        codigoCliente,
-        nomeEmpresa
-      }).catch(error => {
-        console.error('Erro ao enviar email de boas-vindas:', error);
-      });
+      // Enviar email de boas-vindas em background
+      (async () => {
+        try {
+          console.log(`Iniciando envio de email de boas-vindas para: ${newUser.email}`);
+          
+          const emailData = {
+            nome: newUser.name,
+            email: newUser.email,
+            senha: validatedData.password,
+            codigoCliente,
+            nomeEmpresa
+          };
+
+          const emailSent = await sendWelcomeEmailResend(emailData);
+          
+          if (emailSent) {
+            console.log(`✅ Email de boas-vindas enviado com sucesso para: ${newUser.email}`);
+          } else {
+            console.warn(`⚠️ Falha no envio do email de boas-vindas para: ${newUser.email}`);
+          }
+        } catch (error) {
+          console.error(`❌ Erro ao enviar email de boas-vindas para ${newUser.email}:`, error);
+        }
+      })();
 
       // Generate JWT token
       const token = jwt.sign(

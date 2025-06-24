@@ -161,10 +161,10 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
         </div>
         
         <div class="content">
-            <h1 class="welcome-title"><span class="emoji">🎉</span>Bem-vindo ao SimpleDFE${data.nomeEmpresa ? ` – ${data.nomeEmpresa}` : ''}!</h1>
+            <h1 class="welcome-title"><span class="emoji">🎉</span>Bem-vindo ao SimpleDFe${data.nomeEmpresa ? ` – ${data.nomeEmpresa}` : ''}!</h1>
             
             <p class="welcome-text">
-                Olá <strong>${data.nome}</strong>! Seu acesso ao SimpleDFE foi criado com sucesso. 
+                Olá <strong>${data.nome}</strong>! Seu acesso ao SimpleDFe foi criado com sucesso. 
                 Agora você pode aproveitar todas as funcionalidades da nossa plataforma de gestão de documentos fiscais.
             </p>
             
@@ -180,7 +180,7 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
                 </div>
                 <div class="access-item">
                     <span class="access-label">URL:</span>
-                    <a href="https://www.simpledfe.com.br" class="url">www.simpledfe.com.br</a>
+                    <a href="https://simpledfe.simpleit.app.br" class="url">simpledfe.simpleit.app.br</a>
                 </div>
                 ${data.codigoCliente ? `<div class="access-item">
                     <span class="access-label">Código:</span>
@@ -193,7 +193,7 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
             </div>
             
             <div class="features">
-                <div class="features-title">🚀 O que você pode fazer com o SimpleDFE:</div>
+                <div class="features-title">🚀 O que você pode fazer com o SimpleDFe:</div>
                 <div class="feature-item">Captura automática de XMLs de NFe e NFS-e emitidos contra o seu CNPJ</div>
                 <div class="feature-item">Organização por CNPJ, datas e tipos de documentos</div>
                 <div class="feature-item">Acesso seguro com controle de usuários</div>
@@ -203,7 +203,7 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
             <div class="features">
                 <div class="features-title">🎨 Plataforma com interface amigável:</div>
                 <p style="margin: 0; font-size: 14px; color: #6b7280;">
-                    Nosso sistema foi desenvolvido com as cores institucionais e identidade visual do SimpleDFE, 
+                    Nosso sistema foi desenvolvido com as cores institucionais e identidade visual do SimpleDFe, 
                     priorizando usabilidade, clareza e eficiência.
                 </p>
             </div>
@@ -218,7 +218,7 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
             </div>
             <br>
             <p class="support-info">
-                © 2024 <span class="company-name">SimpleDFE</span>. Todos os direitos reservados.
+                © 2024 <span class="company-name">SimpleDFe</span>. Todos os direitos reservados.
             </p>
         </div>
     </div>
@@ -228,8 +228,14 @@ function createWelcomeEmailHTML(data: WelcomeEmailData): string {
 }
 
 export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
+  // Validação dos dados obrigatórios
+  if (!data.nome || !data.email) {
+    console.error('Dados obrigatórios não fornecidos - nome e email são necessários');
+    return false;
+  }
+
   if (!process.env.RESEND_API_KEY) {
-    console.warn('Resend API key não configurada - email não enviado');
+    console.error('RESEND_API_KEY não configurada - email não pode ser enviado');
     return false;
   }
 
@@ -237,36 +243,56 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean>
     const resend = new Resend(process.env.RESEND_API_KEY);
     const htmlContent = createWelcomeEmailHTML(data);
     
+    // Validar email antes de enviar
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      console.error(`Email inválido fornecido: ${data.email}`);
+      return false;
+    }
+
+    console.log(`Enviando email de boas-vindas para: ${data.email}`);
+    
     const result = await resend.emails.send({
       from: 'SimpleDFE <simpledfe@simpleit.com.br>',
       to: [data.email],
-      subject: `🎉 Bem-vindo ao SimpleDFE${data.nomeEmpresa ? ` – ${data.nomeEmpresa}` : ''}`,
+      subject: `🎉 Bem-vindo ao SimpleDFe${data.nomeEmpresa ? ` – ${data.nomeEmpresa}` : ''}`,
       html: htmlContent,
-      text: `Bem-vindo ao SimpleDFE, ${data.nome}! 
+      text: `Bem-vindo ao SimpleDFe, ${data.nome}! 
       
 Seus dados de acesso:
 Usuário: ${data.email}
 Senha: ${data.senha}
-URL: www.simpledfe.com.br
+URL: simpledfe.simpleit.app.br
 ${data.codigoCliente ? `Código do Cliente: ${data.codigoCliente}` : ''}
 
 Por segurança, altere sua senha após o primeiro acesso.
 
-Equipe SimpleDFE
+Equipe SimpleDFe
 contato@simpledfe.com.br
 (11) 94498-7584`
     });
 
-    console.log(`Email de boas-vindas enviado para: ${data.email} - ID: ${result.data?.id}`);
-    return true;
+    if (result.data?.id) {
+      console.log(`✅ Email enviado com sucesso - ID: ${result.data.id} para: ${data.email}`);
+      return true;
+    } else {
+      console.warn(`⚠️ Email enviado mas sem ID de confirmação para: ${data.email}`);
+      return false;
+    }
   } catch (error: any) {
-    console.error('Erro ao enviar email de boas-vindas:', {
+    console.error(`❌ Erro ao enviar email para ${data.email}:`, {
       message: error.message,
-      name: error.name
+      name: error.name,
+      stack: error.stack?.split('\n')[0] // Primeira linha do stack trace
     });
     
+    // Tratamento de erros específicos
     if (error.message?.includes('API key')) {
-      console.error('Erro de API Key - verifique se a chave Resend está correta');
+      console.error('🔑 Erro de autenticação - verifique a RESEND_API_KEY');
+    } else if (error.message?.includes('rate limit')) {
+      console.error('⏱️ Limite de envio atingido - tente novamente mais tarde');
+    } else if (error.message?.includes('domain')) {
+      console.error('🌐 Erro de domínio - verifique a configuração do domínio no Resend');
     }
     
     return false;
