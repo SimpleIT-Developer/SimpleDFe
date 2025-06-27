@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+import mysql from "mysql2/promise";
 
 // Configurações do MySQL - arquivo único para melhor manutenção
 const mysqlConfig = {
@@ -8,7 +8,7 @@ const mysqlConfig = {
   password: "@n@R@quel110987",
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
 };
 
 // Pool de conexões MySQL
@@ -20,10 +20,10 @@ export async function testMysqlConnection(): Promise<boolean> {
     const connection = await mysqlPool.getConnection();
     await connection.ping();
     connection.release();
-    console.log('✅ Conexão MySQL estabelecida com sucesso');
+    console.log("✅ Conexão MySQL estabelecida com sucesso");
     return true;
   } catch (error) {
-    console.error('❌ Erro na conexão MySQL:', error);
+    console.error("❌ Erro na conexão MySQL:", error);
     return false;
   }
 }
