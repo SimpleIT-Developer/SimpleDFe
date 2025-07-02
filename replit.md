@@ -125,6 +125,13 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
+- July 2, 2025: Sistema de exportação em lote por período
+  - Implementado sistema de seleção de linhas com checkboxes nas grids NFe/NFSe
+  - Adicionados botões de ações em lote (Download XML, Download DANFE) no cabeçalho das grids
+  - Criados cards de exportação na tela de relatórios para download por período e empresa
+  - APIs para download em lote usando bibliotecas externas (pegar_varios_nfe.php, baixar_danfe_lote.php)
+  - Geração de arquivos ZIP com nomes padronizados (xml_nfe.zip, danfe_nfe.zip, xml_nfse.zip, danfse_nfse.zip)
+  - Interface dinâmica que altera botão "Gerar PDF" para "Gerar Arquivo" em exportações
 - June 24, 2025: Correção na autenticação
   - Implementado login case-insensitive para emails
   - Normalização de emails para lowercase no registro e busca

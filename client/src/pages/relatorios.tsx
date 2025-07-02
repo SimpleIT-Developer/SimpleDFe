@@ -467,7 +467,10 @@ export default function RelatoriosPage() {
                   ) : (
                     <>
                       <Download className="w-4 h-4 mr-2" />
-                      Gerar PDF
+                      {selectedReport === 'nfe-export-xml' || selectedReport === 'nfe-export-danfe' 
+                        ? 'Gerar Arquivo'
+                        : 'Gerar PDF'
+                      }
                     </>
                   )}
                 </Button>
