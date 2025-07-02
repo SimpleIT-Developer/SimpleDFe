@@ -26,7 +26,8 @@ import {
   Trash2,
   CheckSquare,
   Square,
-  MoreVertical
+  MoreVertical,
+  FileText
 } from "lucide-react";
 import type { NFeRecebida, NFeResponse } from "@shared/schema";
 
@@ -127,48 +128,80 @@ export default function NFeRecebidasPage() {
   };
 
   // Ações em lote
-  const handleBulkDownload = async () => {
+  const handleBulkDownloadXML = async () => {
     if (selectedRows.size === 0) {
       toast({
         title: "Nenhuma NFe selecionada",
-        description: "Selecione pelo menos uma NFe para download",
+        description: "Selecione pelo menos uma NFe para download XML",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Download em Lote",
-      description: `Iniciando download de ${selectedRows.size} NFe(s) selecionada(s)`,
-    });
+    try {
+      const docIds = Array.from(selectedRows).join(',');
+      const downloadUrl = `http://robowincontabil.simpledfe.com.br/api/pegar_varios_nfe.php?id=${docIds}`;
+      
+      // Criar um link temporário para download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = 'xml_nfe.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    // Implementar lógica de download em lote aqui
-    for (const docId of Array.from(selectedRows)) {
-      const nfe = nfes.find(n => n.doc_id === docId);
-      if (nfe) {
-        await handleBaixarXML(nfe);
-      }
+      toast({
+        title: "Download XML iniciado",
+        description: `Download de ${selectedRows.size} XML(s) NFe iniciado`,
+      });
+
+      // Limpar seleção após download
+      clearSelection();
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Erro ao iniciar download dos XMLs",
+        variant: "destructive",
+      });
     }
-    
-    clearSelection();
   };
 
-  const handleBulkIntegrate = () => {
+  const handleBulkDownloadDANFE = async () => {
     if (selectedRows.size === 0) {
       toast({
         title: "Nenhuma NFe selecionada",
-        description: "Selecione pelo menos uma NFe para integração",
+        description: "Selecione pelo menos uma NFe para download DANFE",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Integração em Lote",
-      description: `Iniciando integração de ${selectedRows.size} NFe(s) selecionada(s)`,
-    });
+    try {
+      const docIds = Array.from(selectedRows).join(',');
+      const downloadUrl = `http://robowincontabil.simpledfe.com.br/api/baixar_danfe_lote.php?id=${docIds}`;
+      
+      // Criar um link temporário para download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = 'danfe_nfe.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    clearSelection();
+      toast({
+        title: "Download DANFE iniciado",
+        description: `Download de ${selectedRows.size} DANFE(s) NFe iniciado`,
+      });
+
+      // Limpar seleção após download
+      clearSelection();
+    } catch (error) {
+      toast({
+        title: "Erro no download",
+        description: "Erro ao iniciar download dos DANFEs",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBulkDelete = () => {
@@ -477,22 +510,22 @@ export default function NFeRecebidasPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={handleBulkDownload}
+                    onClick={handleBulkDownloadXML}
                     className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20 h-7"
-                    title="Download em lote"
+                    title="Download XML em lote"
                   >
                     <Download className="w-3 h-3 mr-1" />
-                    Download
+                    XML
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={handleBulkIntegrate}
+                    onClick={handleBulkDownloadDANFE}
                     className="border-green-500/30 text-green-400 hover:bg-green-500/20 h-7"
-                    title="Integrar em lote"
+                    title="Download DANFE em lote"
                   >
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    Integrar
+                    <FileText className="w-3 h-3 mr-1" />
+                    DANFE
                   </Button>
                   <Button
                     size="sm"
