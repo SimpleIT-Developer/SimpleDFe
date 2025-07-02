@@ -18,7 +18,9 @@ import {
   TrendingDown,
   Filter,
   RefreshCw,
-  DollarSign
+  DollarSign,
+  FileText,
+  Printer
 } from "lucide-react";
 import { addDays, format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -99,6 +101,20 @@ export default function RelatoriosPage() {
       description: "Análise de tendências de recebimento de documentos",
       icon: TrendingUp,
       color: "text-orange-500",
+    },
+    {
+      id: "nfe-export-xml",
+      title: "Exportação XML NFe",
+      description: "Download em lote dos XMLs de NFe por período e empresa",
+      icon: FileText,
+      color: "text-purple-500",
+    },
+    {
+      id: "nfe-export-danfe",
+      title: "Exportação DANFE NFe",
+      description: "Download em lote dos DANFEs de NFe por período e empresa",
+      icon: Printer,
+      color: "text-indigo-500",
     },
   ];
 
@@ -227,6 +243,66 @@ export default function RelatoriosPage() {
         } else {
           throw new Error('Formato de resposta inválido');
         }
+      } else if (selectedReport === 'nfe-export-xml') {
+        // Exportação XML NFe
+        const response = await fetch('/api/relatorios/nfe-export-xml', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
+            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            empresa: selectedCompany
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao exportar XMLs');
+        }
+
+        // Criar blob para download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'xml_nfe.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+      } else if (selectedReport === 'nfe-export-danfe') {
+        // Exportação DANFE NFe
+        const response = await fetch('/api/relatorios/nfe-export-danfe', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
+            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            empresa: selectedCompany
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao exportar DANFEs');
+        }
+
+        // Criar blob para download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'danfe_nfe.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
       } else {
         // Outros tipos de relatório (simulação)
         await new Promise(resolve => setTimeout(resolve, 2000));

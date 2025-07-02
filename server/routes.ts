@@ -1449,6 +1449,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para exportação de XMLs NFe por data e empresa
+  app.post('/api/relatorios/nfe-export-xml', authenticateToken, async (req: any, res) => {
+    try {
+      const { dataInicial, dataFinal, empresa } = req.body;
+      
+      if (!dataInicial || !dataFinal) {
+        return res.status(400).json({ error: 'Datas são obrigatórias' });
+      }
+
+      console.log('Exportação XML NFe - Filtros:', { dataInicial, dataFinal, empresa });
+
+      // Construir query para buscar NFes do período
+      let query = `
+        SELECT doc_id 
+        FROM doc 
+        WHERE doc_date_emi >= ? AND doc_date_emi <= ?
+      `;
+      const params = [dataInicial, dataFinal];
+
+      // Adicionar filtro de empresa se especificado
+      if (empresa && empresa !== 'all') {
+        query += ' AND doc_dest_cnpj = ?';
+        params.push(empresa);
+      }
+
+      const [nfes] = await mysqlPool.execute(query, params) as any;
+      
+      if (nfes.length === 0) {
+        return res.status(404).json({ error: 'Nenhuma NFe encontrada no período especificado' });
+      }
+
+      // Usar a mesma API de download em lote
+      const docIds = nfes.map((nfe: any) => nfe.doc_id);
+      const idsString = docIds.join(',');
+      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/pegar_varios_nfe.php?id=${idsString}`;
+      
+      console.log('Fazendo requisição para:', apiUrl);
+      
+      // Fazer requisição para a API externa
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API externa: ${response.status}`);
+      }
+
+      // Configurar headers para download do ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="xml_nfe.zip"');
+      
+      // Retornar o buffer da resposta
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+      
+    } catch (error) {
+      console.error('Erro na exportação de XMLs NFe:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Rota para exportação de DANFEs NFe por data e empresa
+  app.post('/api/relatorios/nfe-export-danfe', authenticateToken, async (req: any, res) => {
+    try {
+      const { dataInicial, dataFinal, empresa } = req.body;
+      
+      if (!dataInicial || !dataFinal) {
+        return res.status(400).json({ error: 'Datas são obrigatórias' });
+      }
+
+      console.log('Exportação DANFE NFe - Filtros:', { dataInicial, dataFinal, empresa });
+
+      // Construir query para buscar NFes do período
+      let query = `
+        SELECT doc_id 
+        FROM doc 
+        WHERE doc_date_emi >= ? AND doc_date_emi <= ?
+      `;
+      const params = [dataInicial, dataFinal];
+
+      // Adicionar filtro de empresa se especificado
+      if (empresa && empresa !== 'all') {
+        query += ' AND doc_dest_cnpj = ?';
+        params.push(empresa);
+      }
+
+      const [nfes] = await mysqlPool.execute(query, params) as any;
+      
+      if (nfes.length === 0) {
+        return res.status(404).json({ error: 'Nenhuma NFe encontrada no período especificado' });
+      }
+
+      // Usar a mesma API de download em lote
+      const docIds = nfes.map((nfe: any) => nfe.doc_id);
+      const idsString = docIds.join(',');
+      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/baixar_danfe_lote.php?id=${idsString}`;
+      
+      console.log('Fazendo requisição para:', apiUrl);
+      
+      // Fazer requisição para a API externa
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API externa: ${response.status}`);
+      }
+
+      // Configurar headers para download do ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="danfe_nfe.zip"');
+      
+      // Retornar o buffer da resposta
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+      
+    } catch (error) {
+      console.error('Erro na exportação de DANFEs NFe:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Rota para download de XML da NFe via API externa
   app.get("/api/nfe-download/:doc_id", authenticateToken, async (req: any, res) => {
     try {
