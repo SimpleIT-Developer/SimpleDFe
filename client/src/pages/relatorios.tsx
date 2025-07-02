@@ -116,6 +116,20 @@ export default function RelatoriosPage() {
       icon: Printer,
       color: "text-indigo-500",
     },
+    {
+      id: "nfse-export-xml",
+      title: "Exportação XML NFSe",
+      description: "Download em lote dos XMLs de NFSe por período e empresa",
+      icon: FileText,
+      color: "text-cyan-500",
+    },
+    {
+      id: "nfse-export-danfse",
+      title: "Exportação DANFSe NFSe",
+      description: "Download em lote das DANFSe por período e empresa",
+      icon: Printer,
+      color: "text-teal-500",
+    },
   ];
 
   const handleGenerateReport = async () => {
@@ -303,6 +317,66 @@ export default function RelatoriosPage() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
 
+      } else if (selectedReport === 'nfse-export-xml') {
+        // Exportação XML NFSe
+        const response = await fetch('/api/relatorios/nfse-export-xml', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
+            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            empresa: selectedCompany
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao exportar XMLs NFSe');
+        }
+
+        // Criar blob para download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'xml_nfse.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+      } else if (selectedReport === 'nfse-export-danfse') {
+        // Exportação DANFSe NFSe
+        const response = await fetch('/api/relatorios/nfse-export-danfse', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
+            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            empresa: selectedCompany
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao exportar DANFSe NFSe');
+        }
+
+        // Criar blob para download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'danfse_nfse.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
       } else {
         // Outros tipos de relatório (simulação)
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -467,7 +541,8 @@ export default function RelatoriosPage() {
                   ) : (
                     <>
                       <Download className="w-4 h-4 mr-2" />
-                      {selectedReport === 'nfe-export-xml' || selectedReport === 'nfe-export-danfe' 
+                      {selectedReport === 'nfe-export-xml' || selectedReport === 'nfe-export-danfe' || 
+                       selectedReport === 'nfse-export-xml' || selectedReport === 'nfse-export-danfse'
                         ? 'Gerar Arquivo'
                         : 'Gerar PDF'
                       }
