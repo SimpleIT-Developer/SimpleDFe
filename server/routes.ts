@@ -1325,7 +1325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Download em lote XMLs NFSe - IDs:', nfseIds);
 
-      const AdmZip = require('adm-zip');
+      const AdmZip = (await import('adm-zip')).default;
       const zip = new AdmZip();
 
       // Buscar XMLs de cada NFSe
@@ -1386,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Download em lote DANFSe - IDs:', nfseIds);
 
-      const AdmZip = require('adm-zip');
+      const AdmZip = (await import('adm-zip')).default;
       const zip = new AdmZip();
 
       // Gerar DANFSe para cada NFSe
@@ -1415,12 +1415,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             // Gerar DANFSe usando a função existente
-            const { generateDANFSE } = require('./danfse-layout-final');
+            const { generateDANFSE } = await import('./danfse-layout-final');
             const result = await generateDANFSE(xmlContent);
             
             if (result.success && result.pdfPath) {
               // Ler o arquivo PDF gerado
-              const fs = require('fs');
+              const fs = await import('fs');
               const pdfBuffer = fs.readFileSync(result.pdfPath);
               
               // Adicionar PDF ao ZIP
