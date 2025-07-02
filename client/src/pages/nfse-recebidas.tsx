@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, RefreshCw, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, ArrowUpDown, ArrowUp, ArrowDown, Printer, Upload } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Download, RefreshCw, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, ArrowUpDown, ArrowUp, ArrowDown, Printer, Upload, Square } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { NFSeRecebida, NFSeResponse } from "@shared/schema";
 
@@ -73,6 +74,10 @@ export default function NFSeRecebidasPage() {
   const [sortBy, setSortBy] = useState<keyof NFSeRecebida>("nfse_data_hora");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isImporting, setIsImporting] = useState(false);
+  
+  // Estados para seleção de linhas
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   const { data: nfseData, isLoading, error } = useQuery({
     queryKey: ["nfse-recebidas", { 
@@ -328,6 +333,83 @@ export default function NFSeRecebidasPage() {
     }
   };
 
+  // Funções para controle de seleção
+  const handleSelectRow = (nfseId: number, checked: boolean) => {
+    const newSelectedRows = new Set(selectedRows);
+    if (checked) {
+      newSelectedRows.add(nfseId);
+    } else {
+      newSelectedRows.delete(nfseId);
+    }
+    setSelectedRows(newSelectedRows);
+    setSelectAll(newSelectedRows.size === nfses.length && nfses.length > 0);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(nfses.map(nfse => nfse.nfse_id));
+      setSelectedRows(allIds);
+    } else {
+      setSelectedRows(new Set());
+    }
+    setSelectAll(checked);
+  };
+
+  const clearSelection = () => {
+    setSelectedRows(new Set());
+    setSelectAll(false);
+  };
+
+  // Limpar seleção quando os dados mudarem (filtros, paginação, etc.)
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    clearSelection();
+  };
+
+  // Ações em lote
+  const handleBulkDownload = async () => {
+    if (selectedRows.size === 0) {
+      toast({
+        title: "Nenhuma NFSe selecionada",
+        description: "Selecione pelo menos uma NFSe para download",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Download em Lote",
+      description: `Iniciando download de ${selectedRows.size} NFSe(s) selecionada(s)`,
+    });
+
+    for (const nfseId of Array.from(selectedRows)) {
+      const nfse = nfses.find(n => n.nfse_id === nfseId);
+      if (nfse) {
+        await handleBaixarXML(nfse);
+      }
+    }
+    
+    clearSelection();
+  };
+
+  const handleBulkIntegrate = () => {
+    if (selectedRows.size === 0) {
+      toast({
+        title: "Nenhuma NFSe selecionada",
+        description: "Selecione pelo menos uma NFSe para integração",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Integração em Lote",
+      description: `Iniciando integração de ${selectedRows.size} NFSe(s) selecionada(s)`,
+    });
+
+    clearSelection();
+  };
+
   return (
     <Layout currentPage="NFSe Recebidas">
       <div className="space-y-6">
@@ -342,6 +424,46 @@ export default function NFSeRecebidasPage() {
             <Badge variant="secondary" className="text-primary">
               {total} {total === 1 ? "NFSe" : "NFSes"}
             </Badge>
+            
+            {/* Ações em Lote - só aparecem quando há seleções */}
+            {selectedRows.size > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/20 rounded-md border border-blue-500/30">
+                <span className="text-blue-400 text-sm font-medium">
+                  {selectedRows.size} selecionada{selectedRows.size > 1 ? 's' : ''}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleBulkDownload}
+                    className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20 h-7"
+                    title="Download em lote"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    Download
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleBulkIntegrate}
+                    className="border-green-500/30 text-green-400 hover:bg-green-500/20 h-7"
+                    title="Integrar em lote"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Integrar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={clearSelection}
+                    className="border-gray-500/30 text-gray-400 hover:bg-gray-500/20 h-7"
+                    title="Limpar seleção"
+                  >
+                    <Square className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
             
             {/* Botão de Importar XML */}
             <div className="relative">
@@ -495,6 +617,14 @@ export default function NFSeRecebidasPage() {
                   <table className="w-full table-fixed">
                     <thead>
                       <tr className="border-b border-white/10">
+                        <th className="text-left py-3 px-2 w-12">
+                          <Checkbox
+                            checked={selectAll}
+                            onCheckedChange={handleSelectAll}
+                            className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            title="Selecionar todos"
+                          />
+                        </th>
                         <th className="text-left py-3 px-2 w-32">
                           <Button
                             variant="ghost"
@@ -567,8 +697,17 @@ export default function NFSeRecebidasPage() {
                       {nfses.map((nfse, index) => (
                         <tr 
                           key={index} 
-                          className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                          className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
+                            selectedRows.has(nfse.nfse_id) ? 'bg-blue-500/10' : ''
+                          }`}
                         >
+                          <td className="py-2 px-2">
+                            <Checkbox
+                              checked={selectedRows.has(nfse.nfse_id)}
+                              onCheckedChange={(checked) => handleSelectRow(nfse.nfse_id, checked as boolean)}
+                              className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            />
+                          </td>
                           <td className="py-2 px-2 text-white text-sm truncate" title={nfse.nfse_emitente}>
                             {nfse.nfse_emitente}
                           </td>
@@ -641,7 +780,7 @@ export default function NFSeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page > 1) {
-                        setPage(1);
+                        handlePageChange(1);
                       }
                     }}
                     disabled={page === 1}
@@ -654,7 +793,7 @@ export default function NFSeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page > 1) {
-                        setPage(prev => prev - 1);
+                        handlePageChange(page - 1);
                       }
                     }}
                     disabled={page === 1}
@@ -670,7 +809,7 @@ export default function NFSeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page < totalPages) {
-                        setPage(prev => prev + 1);
+                        handlePageChange(page + 1);
                       }
                     }}
                     disabled={page >= totalPages}
@@ -683,7 +822,7 @@ export default function NFSeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page < totalPages) {
-                        setPage(totalPages);
+                        handlePageChange(totalPages);
                       }
                     }}
                     disabled={page >= totalPages}

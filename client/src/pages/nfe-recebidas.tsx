@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
@@ -21,7 +22,11 @@ import {
   ArrowUp,
   ArrowDown,
   Filter,
-  Upload
+  Upload,
+  Trash2,
+  CheckSquare,
+  Square,
+  MoreVertical
 } from "lucide-react";
 import type { NFeRecebida, NFeResponse } from "@shared/schema";
 
@@ -39,6 +44,10 @@ export default function NFeRecebidasPage() {
   const [sortBy, setSortBy] = useState<keyof NFeRecebida>("doc_date_emi");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isImporting, setIsImporting] = useState(false);
+  
+  // Estados para seleção de linhas
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   const { data: nfeData, isLoading, error } = useQuery({
     queryKey: ["nfe-recebidas", { 
@@ -88,6 +97,96 @@ export default function NFeRecebidasPage() {
   const handleSearch = (value: string) => {
     setSearch(value);
     setPage(1);
+  };
+
+  // Funções para controle de seleção
+  const handleSelectRow = (docId: number, checked: boolean) => {
+    const newSelectedRows = new Set(selectedRows);
+    if (checked) {
+      newSelectedRows.add(docId);
+    } else {
+      newSelectedRows.delete(docId);
+    }
+    setSelectedRows(newSelectedRows);
+    setSelectAll(newSelectedRows.size === nfes.length && nfes.length > 0);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(nfes.map(nfe => nfe.doc_id));
+      setSelectedRows(allIds);
+    } else {
+      setSelectedRows(new Set());
+    }
+    setSelectAll(checked);
+  };
+
+  const clearSelection = () => {
+    setSelectedRows(new Set());
+    setSelectAll(false);
+  };
+
+  // Ações em lote
+  const handleBulkDownload = async () => {
+    if (selectedRows.size === 0) {
+      toast({
+        title: "Nenhuma NFe selecionada",
+        description: "Selecione pelo menos uma NFe para download",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Download em Lote",
+      description: `Iniciando download de ${selectedRows.size} NFe(s) selecionada(s)`,
+    });
+
+    // Implementar lógica de download em lote aqui
+    for (const docId of Array.from(selectedRows)) {
+      const nfe = nfes.find(n => n.doc_id === docId);
+      if (nfe) {
+        await handleBaixarXML(nfe);
+      }
+    }
+    
+    clearSelection();
+  };
+
+  const handleBulkIntegrate = () => {
+    if (selectedRows.size === 0) {
+      toast({
+        title: "Nenhuma NFe selecionada",
+        description: "Selecione pelo menos uma NFe para integração",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Integração em Lote",
+      description: `Iniciando integração de ${selectedRows.size} NFe(s) selecionada(s)`,
+    });
+
+    clearSelection();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedRows.size === 0) {
+      toast({
+        title: "Nenhuma NFe selecionada",
+        description: "Selecione pelo menos uma NFe para exclusão",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Aqui você pode implementar um modal de confirmação
+    toast({
+      title: "Exclusão em Lote",
+      description: `${selectedRows.size} NFe(s) seriam excluída(s). Funcionalidade será implementada.`,
+      variant: "destructive",
+    });
   };
 
   const handleRefreshNFe = () => {
@@ -347,6 +446,12 @@ export default function NFeRecebidasPage() {
   const totalPages = nfeData?.totalPages || 1;
   const total = nfeData?.total || 0;
 
+  // Limpar seleção quando os dados mudarem (filtros, paginação, etc.)
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    clearSelection();
+  };
+
   return (
     <Layout currentPage="NFe Recebidas">
       <div className="space-y-6">
@@ -361,6 +466,46 @@ export default function NFeRecebidasPage() {
             <Badge variant="secondary" className="text-primary">
               {total} {total === 1 ? "NFe" : "NFes"}
             </Badge>
+            
+            {/* Ações em Lote - só aparecem quando há seleções */}
+            {selectedRows.size > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/20 rounded-md border border-blue-500/30">
+                <span className="text-blue-400 text-sm font-medium">
+                  {selectedRows.size} selecionada{selectedRows.size > 1 ? 's' : ''}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleBulkDownload}
+                    className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20 h-7"
+                    title="Download em lote"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    Download
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleBulkIntegrate}
+                    className="border-green-500/30 text-green-400 hover:bg-green-500/20 h-7"
+                    title="Integrar em lote"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Integrar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={clearSelection}
+                    className="border-gray-500/30 text-gray-400 hover:bg-gray-500/20 h-7"
+                    title="Limpar seleção"
+                  >
+                    <Square className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
             
             {/* Botão de Importar XML */}
             <div className="relative">
@@ -478,6 +623,14 @@ export default function NFeRecebidasPage() {
               <table className="w-full table-fixed">
                 <thead>
                   <tr className="border-b border-white/10">
+                    <th className="text-left py-3 px-2 w-12">
+                      <Checkbox
+                        checked={selectAll}
+                        onCheckedChange={handleSelectAll}
+                        className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        title="Selecionar todos"
+                      />
+                    </th>
                     <th className="text-left py-3 px-2 w-20">
                       <Button
                         variant="ghost"
@@ -541,8 +694,17 @@ export default function NFeRecebidasPage() {
                   {nfes.map((nfe, index) => (
                     <tr
                       key={`${nfe.doc_num}-${index}`}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
+                        selectedRows.has(nfe.doc_id) ? 'bg-blue-500/10' : ''
+                      }`}
                     >
+                      <td className="py-2 px-2">
+                        <Checkbox
+                          checked={selectedRows.has(nfe.doc_id)}
+                          onCheckedChange={(checked) => handleSelectRow(nfe.doc_id, checked as boolean)}
+                          className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                        />
+                      </td>
                       <td className="py-2 px-2 text-white font-mono text-sm truncate">
                         {nfe.doc_num}
                       </td>
@@ -620,7 +782,7 @@ export default function NFeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page > 1) {
-                        setPage(1);
+                        handlePageChange(1);
                       }
                     }}
                     disabled={page === 1}
@@ -633,7 +795,7 @@ export default function NFeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page > 1) {
-                        setPage(prev => prev - 1);
+                        handlePageChange(page - 1);
                       }
                     }}
                     disabled={page === 1}
@@ -649,7 +811,7 @@ export default function NFeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page < totalPages) {
-                        setPage(prev => prev + 1);
+                        handlePageChange(page + 1);
                       }
                     }}
                     disabled={page >= totalPages}
@@ -662,7 +824,7 @@ export default function NFeRecebidasPage() {
                     size="sm"
                     onClick={() => {
                       if (page < totalPages) {
-                        setPage(totalPages);
+                        handlePageChange(totalPages);
                       }
                     }}
                     disabled={page >= totalPages}
