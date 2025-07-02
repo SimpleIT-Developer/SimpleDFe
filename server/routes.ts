@@ -1244,6 +1244,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para download em lote de XMLs da NFe
+  app.post('/api/nfe-bulk-download-xml', authenticateToken, async (req: any, res) => {
+    try {
+      const { docIds } = req.body;
+      
+      if (!docIds || !Array.isArray(docIds) || docIds.length === 0) {
+        return res.status(400).json({ error: 'IDs dos documentos são obrigatórios' });
+      }
+
+      const idsString = docIds.join(',');
+      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/pegar_varios_nfe.php?id=${idsString}`;
+      
+      console.log('Fazendo requisição para:', apiUrl);
+      
+      // Fazer requisição para a API externa
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API externa: ${response.status}`);
+      }
+
+      // Configurar headers para download do ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="xml_nfe.zip"');
+      
+      // Retornar o buffer da resposta
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+      
+    } catch (error) {
+      console.error('Erro no download em lote de XMLs:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Rota para download em lote de DANFEs da NFe
+  app.post('/api/nfe-bulk-download-danfe', authenticateToken, async (req: any, res) => {
+    try {
+      const { docIds } = req.body;
+      
+      if (!docIds || !Array.isArray(docIds) || docIds.length === 0) {
+        return res.status(400).json({ error: 'IDs dos documentos são obrigatórios' });
+      }
+
+      const idsString = docIds.join(',');
+      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/baixar_danfe_lote.php?id=${idsString}`;
+      
+      console.log('Fazendo requisição para:', apiUrl);
+      
+      // Fazer requisição para a API externa
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API externa: ${response.status}`);
+      }
+
+      // Configurar headers para download do ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="danfe_nfe.zip"');
+      
+      // Retornar o buffer da resposta
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+      
+    } catch (error) {
+      console.error('Erro no download em lote de DANFEs:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Rota para download de XML da NFe via API externa
   app.get("/api/nfe-download/:doc_id", authenticateToken, async (req: any, res) => {
     try {

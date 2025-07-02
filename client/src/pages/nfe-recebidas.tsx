@@ -139,16 +139,31 @@ export default function NFeRecebidasPage() {
     }
 
     try {
-      const docIds = Array.from(selectedRows).join(',');
-      const downloadUrl = `http://robowincontabil.simpledfe.com.br/api/pegar_varios_nfe.php?id=${docIds}`;
+      const docIds = Array.from(selectedRows);
       
-      // Criar um link temporário para download
+      const response = await fetch('/api/nfe-bulk-download-xml', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ docIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro no download');
+      }
+
+      // Criar blob para download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = downloadUrl;
+      link.href = url;
       link.download = 'xml_nfe.zip';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       toast({
         title: "Download XML iniciado",
@@ -158,6 +173,7 @@ export default function NFeRecebidasPage() {
       // Limpar seleção após download
       clearSelection();
     } catch (error) {
+      console.error('Erro no download XML:', error);
       toast({
         title: "Erro no download",
         description: "Erro ao iniciar download dos XMLs",
@@ -177,16 +193,31 @@ export default function NFeRecebidasPage() {
     }
 
     try {
-      const docIds = Array.from(selectedRows).join(',');
-      const downloadUrl = `http://robowincontabil.simpledfe.com.br/api/baixar_danfe_lote.php?id=${docIds}`;
+      const docIds = Array.from(selectedRows);
       
-      // Criar um link temporário para download
+      const response = await fetch('/api/nfe-bulk-download-danfe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ docIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro no download');
+      }
+
+      // Criar blob para download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = downloadUrl;
+      link.href = url;
       link.download = 'danfe_nfe.zip';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       toast({
         title: "Download DANFE iniciado",
@@ -196,6 +227,7 @@ export default function NFeRecebidasPage() {
       // Limpar seleção após download
       clearSelection();
     } catch (error) {
+      console.error('Erro no download DANFE:', error);
       toast({
         title: "Erro no download",
         description: "Erro ao iniciar download dos DANFEs",
