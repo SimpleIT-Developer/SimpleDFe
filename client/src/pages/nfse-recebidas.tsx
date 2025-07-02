@@ -367,47 +367,96 @@ export default function NFSeRecebidasPage() {
   };
 
   // Ações em lote
-  const handleBulkDownload = async () => {
+  const handleBulkDownloadXML = async () => {
     if (selectedRows.size === 0) {
       toast({
         title: "Nenhuma NFSe selecionada",
-        description: "Selecione pelo menos uma NFSe para download",
+        description: "Selecione pelo menos uma NFSe para download XML",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Download em Lote",
-      description: `Iniciando download de ${selectedRows.size} NFSe(s) selecionada(s)`,
-    });
-
-    for (const nfseId of Array.from(selectedRows)) {
-      const nfse = nfses.find(n => n.nfse_id === nfseId);
-      if (nfse) {
-        await handleBaixarXML(nfse);
+    try {
+      // Para NFSe, vamos fazer download individual de cada XML
+      const nfseIds = Array.from(selectedRows);
+      
+      for (const nfseId of nfseIds) {
+        const nfse = nfses.find(n => n.nfse_id === nfseId);
+        if (nfse) {
+          // Usar a mesma lógica do download individual de XML
+          const link = document.createElement('a');
+          link.href = `/api/nfse-xml/${nfseId}`;
+          link.download = `nfse_${nfseId}_xml.xml`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Pequeno delay entre downloads para evitar problemas
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
+
+      toast({
+        title: "Download XML iniciado",
+        description: `Download de ${selectedRows.size} XML(s) NFSe iniciado`,
+      });
+
+      clearSelection();
+    } catch (error) {
+      console.error('Erro no download XML:', error);
+      toast({
+        title: "Erro no download",
+        description: "Erro ao iniciar download dos XMLs",
+        variant: "destructive",
+      });
     }
-    
-    clearSelection();
   };
 
-  const handleBulkIntegrate = () => {
+  const handleBulkDownloadDANFSE = async () => {
     if (selectedRows.size === 0) {
       toast({
         title: "Nenhuma NFSe selecionada",
-        description: "Selecione pelo menos uma NFSe para integração",
+        description: "Selecione pelo menos uma NFSe para download DANFSe",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Integração em Lote",
-      description: `Iniciando integração de ${selectedRows.size} NFSe(s) selecionada(s)`,
-    });
+    try {
+      // Para NFSe, vamos fazer download individual de cada DANFSe
+      const nfseIds = Array.from(selectedRows);
+      
+      for (const nfseId of nfseIds) {
+        const nfse = nfses.find(n => n.nfse_id === nfseId);
+        if (nfse) {
+          // Usar a mesma lógica do download individual de DANFSe
+          const link = document.createElement('a');
+          link.href = `/api/nfse-danfse/${nfseId}`;
+          link.download = `danfse_${nfseId}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Pequeno delay entre downloads para evitar problemas
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
 
-    clearSelection();
+      toast({
+        title: "Download DANFSe iniciado",
+        description: `Download de ${selectedRows.size} DANFSe(s) iniciado`,
+      });
+
+      clearSelection();
+    } catch (error) {
+      console.error('Erro no download DANFSe:', error);
+      toast({
+        title: "Erro no download",
+        description: "Erro ao iniciar download das DANFSe",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -435,22 +484,22 @@ export default function NFSeRecebidasPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={handleBulkDownload}
+                    onClick={handleBulkDownloadXML}
                     className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20 h-7"
-                    title="Download em lote"
+                    title="Download XML em lote"
                   >
                     <Download className="w-3 h-3 mr-1" />
-                    Download
+                    XML
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={handleBulkIntegrate}
+                    onClick={handleBulkDownloadDANFSE}
                     className="border-green-500/30 text-green-400 hover:bg-green-500/20 h-7"
-                    title="Integrar em lote"
+                    title="Download DANFSe em lote"
                   >
-                    <RefreshCw className="w-3 h-3 mr-1" />
-                    Integrar
+                    <Printer className="w-3 h-3 mr-1" />
+                    DANFSe
                   </Button>
                   <Button
                     size="sm"
