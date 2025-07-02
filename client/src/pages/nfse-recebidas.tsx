@@ -378,24 +378,31 @@ export default function NFSeRecebidasPage() {
     }
 
     try {
-      // Para NFSe, vamos fazer download individual de cada XML
       const nfseIds = Array.from(selectedRows);
       
-      for (const nfseId of nfseIds) {
-        const nfse = nfses.find(n => n.nfse_id === nfseId);
-        if (nfse) {
-          // Usar a mesma lógica do download individual de XML
-          const link = document.createElement('a');
-          link.href = `/api/nfse-xml/${nfseId}`;
-          link.download = `nfse_${nfseId}_xml.xml`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Pequeno delay entre downloads para evitar problemas
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+      const response = await fetch('/api/nfse-bulk-download-xml', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ nfseIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro no download');
       }
+
+      // Criar blob para download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'xml_nfse.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       toast({
         title: "Download XML iniciado",
@@ -424,24 +431,31 @@ export default function NFSeRecebidasPage() {
     }
 
     try {
-      // Para NFSe, vamos fazer download individual de cada DANFSe
       const nfseIds = Array.from(selectedRows);
       
-      for (const nfseId of nfseIds) {
-        const nfse = nfses.find(n => n.nfse_id === nfseId);
-        if (nfse) {
-          // Usar a mesma lógica do download individual de DANFSe
-          const link = document.createElement('a');
-          link.href = `/api/nfse-danfse/${nfseId}`;
-          link.download = `danfse_${nfseId}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Pequeno delay entre downloads para evitar problemas
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
+      const response = await fetch('/api/nfse-bulk-download-danfse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ nfseIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro no download');
       }
+
+      // Criar blob para download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'danfse_nfse.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
       toast({
         title: "Download DANFSe iniciado",

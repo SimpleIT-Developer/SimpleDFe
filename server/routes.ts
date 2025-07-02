@@ -1314,6 +1314,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para download em lote de XMLs da NFSe
+  app.post('/api/nfse-bulk-download-xml', authenticateToken, async (req: any, res) => {
+    try {
+      const { nfseIds } = req.body;
+      
+      if (!nfseIds || !Array.isArray(nfseIds) || nfseIds.length === 0) {
+        return res.status(400).json({ error: 'IDs das NFSe são obrigatórios' });
+      }
+
+      console.log('Download em lote XMLs NFSe - IDs:', nfseIds);
+
+      const AdmZip = require('adm-zip');
+      const zip = new AdmZip();
+
+      // Buscar XMLs de cada NFSe
+      for (const nfseId of nfseIds) {
+        try {
+          const [rows] = await mysqlPool.execute(
+            'SELECT nfse_xml FROM nfse WHERE nfse_id = ?',
+            [nfseId]
+          ) as any;
+
+          if (rows.length > 0) {
+            let xmlContent = rows[0].nfse_xml;
+            
+            // Converter Buffer para string se necessário
+            if (Buffer.isBuffer(xmlContent)) {
+              xmlContent = xmlContent.toString('utf-8');
+            }
+            
+            // Decodificar base64 se necessário
+            if (typeof xmlContent === 'string' && xmlContent.match(/^[A-Za-z0-9+/=]+$/)) {
+              try {
+                xmlContent = Buffer.from(xmlContent, 'base64').toString('utf-8');
+              } catch (e) {
+                // Se falhar na decodificação, usar string original
+              }
+            }
+
+            // Adicionar XML ao ZIP
+            zip.addFile(`nfse_${nfseId}.xml`, Buffer.from(xmlContent, 'utf-8'));
+          }
+        } catch (error) {
+          console.error(`Erro ao buscar XML da NFSe ${nfseId}:`, error);
+        }
+      }
+
+      // Configurar headers para download do ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="xml_nfse.zip"');
+      
+      // Enviar o ZIP
+      const zipBuffer = zip.toBuffer();
+      res.send(zipBuffer);
+      
+    } catch (error) {
+      console.error('Erro no download em lote de XMLs NFSe:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  // Rota para download em lote de DANFSe
+  app.post('/api/nfse-bulk-download-danfse', authenticateToken, async (req: any, res) => {
+    try {
+      const { nfseIds } = req.body;
+      
+      if (!nfseIds || !Array.isArray(nfseIds) || nfseIds.length === 0) {
+        return res.status(400).json({ error: 'IDs das NFSe são obrigatórios' });
+      }
+
+      console.log('Download em lote DANFSe - IDs:', nfseIds);
+
+      const AdmZip = require('adm-zip');
+      const zip = new AdmZip();
+
+      // Gerar DANFSe para cada NFSe
+      for (const nfseId of nfseIds) {
+        try {
+          const [rows] = await mysqlPool.execute(
+            'SELECT nfse_xml FROM nfse WHERE nfse_id = ?',
+            [nfseId]
+          ) as any;
+
+          if (rows.length > 0) {
+            let xmlContent = rows[0].nfse_xml;
+            
+            // Converter Buffer para string se necessário
+            if (Buffer.isBuffer(xmlContent)) {
+              xmlContent = xmlContent.toString('utf-8');
+            }
+            
+            // Decodificar base64 se necessário
+            if (typeof xmlContent === 'string' && xmlContent.match(/^[A-Za-z0-9+/=]+$/)) {
+              try {
+                xmlContent = Buffer.from(xmlContent, 'base64').toString('utf-8');
+              } catch (e) {
+                // Se falhar na decodificação, usar string original
+              }
+            }
+
+            // Gerar DANFSe usando a função existente
+            const { generateDANFSE } = require('./danfse-layout-final');
+            const result = await generateDANFSE(xmlContent);
+            
+            if (result.success && result.pdfPath) {
+              // Ler o arquivo PDF gerado
+              const fs = require('fs');
+              const pdfBuffer = fs.readFileSync(result.pdfPath);
+              
+              // Adicionar PDF ao ZIP
+              zip.addFile(`danfse_${nfseId}.pdf`, pdfBuffer);
+              
+              // Remover arquivo temporário
+              fs.unlinkSync(result.pdfPath);
+            }
+          }
+        } catch (error) {
+          console.error(`Erro ao gerar DANFSe ${nfseId}:`, error);
+        }
+      }
+
+      // Configurar headers para download do ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="danfse_nfse.zip"');
+      
+      // Enviar o ZIP
+      const zipBuffer = zip.toBuffer();
+      res.send(zipBuffer);
+      
+    } catch (error) {
+      console.error('Erro no download em lote de DANFSe:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Rota para download de XML da NFe via API externa
   app.get("/api/nfe-download/:doc_id", authenticateToken, async (req: any, res) => {
     try {
