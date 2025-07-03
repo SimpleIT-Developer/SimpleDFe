@@ -27,11 +27,6 @@ import {
 import { addDays, format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-interface DateRange {
-  from?: Date;
-  to?: Date;
-}
-
 // Função para formatar data local sem conversão de timezone
 const formatDateLocal = (date: Date): string => {
   const year = date.getFullYear();
@@ -42,10 +37,8 @@ const formatDateLocal = (date: Date): string => {
 
 export default function RelatoriosPage() {
   const [selectedReport, setSelectedReport] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  });
+  const [dataInicial, setDataInicial] = useState("");
+  const [dataFinal, setDataFinal] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -147,10 +140,10 @@ export default function RelatoriosPage() {
       
       if (selectedReport === 'nfe-summary') {
         apiUrl = '/api/relatorios/nfe-resumo-excel';
-        filename = `relatorio-nfe-${dateRange.from ? formatDateLocal(dateRange.from) : ''}-${dateRange.to ? formatDateLocal(dateRange.to) : ''}.xlsx`;
+        filename = `relatorio-nfe-${dataInicial}-${dataFinal}.xlsx`;
       } else if (selectedReport === 'nfse-summary') {
         apiUrl = '/api/relatorios/nfse-resumo-excel';
-        filename = `relatorio-nfse-${dateRange.from ? formatDateLocal(dateRange.from) : ''}-${dateRange.to ? formatDateLocal(dateRange.to) : ''}.xlsx`;
+        filename = `relatorio-nfse-${dataInicial}-${dataFinal}.xlsx`;
       } else {
         throw new Error('Tipo de relatório não suporta Excel');
       }
@@ -162,8 +155,8 @@ export default function RelatoriosPage() {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
         body: JSON.stringify({
-          dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-          dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+          dataInicial: dataInicial,
+          dataFinal: dataFinal,
           empresa: selectedCompany
         })
       });
@@ -208,8 +201,8 @@ export default function RelatoriosPage() {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
           },
           body: JSON.stringify({
-            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            dataInicial: dataInicial,
+            dataFinal: dataFinal,
             empresa: selectedCompany
           })
         });
@@ -247,8 +240,8 @@ export default function RelatoriosPage() {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
           },
           body: JSON.stringify({
-            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            dataInicial: dataInicial,
+            dataFinal: dataFinal,
             empresa: selectedCompany
           })
         });
@@ -286,8 +279,8 @@ export default function RelatoriosPage() {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
           },
           body: JSON.stringify({
-            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            dataInicial: dataInicial,
+            dataFinal: dataFinal,
             empresa: selectedCompany
           })
         });
@@ -325,8 +318,8 @@ export default function RelatoriosPage() {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify({
-            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            dataInicial: dataInicial,
+            dataFinal: dataFinal,
             empresa: selectedCompany
           })
         });
@@ -355,8 +348,8 @@ export default function RelatoriosPage() {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify({
-            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            dataInicial: dataInicial,
+            dataFinal: dataFinal,
             empresa: selectedCompany
           })
         });
@@ -385,8 +378,8 @@ export default function RelatoriosPage() {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify({
-            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            dataInicial: dataInicial,
+            dataFinal: dataFinal,
             empresa: selectedCompany
           })
         });
@@ -415,8 +408,8 @@ export default function RelatoriosPage() {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify({
-            dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
-            dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+            dataInicial: dataInicial,
+            dataFinal: dataFinal,
             empresa: selectedCompany
           })
         });
@@ -441,7 +434,8 @@ export default function RelatoriosPage() {
         await new Promise(resolve => setTimeout(resolve, 2000));
         console.log("Gerando relatório:", {
           type: selectedReport,
-          dateRange,
+          dataInicial,
+          dataFinal,
           company: selectedCompany,
         });
       }
@@ -453,15 +447,7 @@ export default function RelatoriosPage() {
     }
   };
 
-  const formatDateRange = () => {
-    if (!dateRange.from) return "Selecionar período";
-    
-    if (dateRange.to) {
-      return `${format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })} - ${format(dateRange.to, "dd/MM/yyyy", { locale: ptBR })}`;
-    }
-    
-    return format(dateRange.from, "dd/MM/yyyy", { locale: ptBR });
-  };
+
 
   return (
     <Layout currentPage="Relatórios">
@@ -543,16 +529,8 @@ export default function RelatoriosPage() {
                       <Label className="text-gray-300 text-sm mb-1 block">Data Inicial</Label>
                       <DateInput
                         placeholder="Data Inicial"
-                        value={dateRange.from ? formatDateLocal(dateRange.from) : ""}
-                        onChange={(value) => {
-                          if (value) {
-                            const [year, month, day] = value.split('-');
-                            const date = new Date(Number(year), Number(month) - 1, Number(day));
-                            setDateRange(prev => ({ ...prev, from: date }));
-                          } else {
-                            setDateRange(prev => ({ ...prev, from: undefined }));
-                          }
-                        }}
+                        value={dataInicial}
+                        onChange={setDataInicial}
                       />
                     </div>
                     
@@ -560,16 +538,8 @@ export default function RelatoriosPage() {
                       <Label className="text-gray-300 text-sm mb-1 block">Data Final</Label>
                       <DateInput
                         placeholder="Data Final"
-                        value={dateRange.to ? formatDateLocal(dateRange.to) : ""}
-                        onChange={(value) => {
-                          if (value) {
-                            const [year, month, day] = value.split('-');
-                            const date = new Date(Number(year), Number(month) - 1, Number(day));
-                            setDateRange(prev => ({ ...prev, to: date }));
-                          } else {
-                            setDateRange(prev => ({ ...prev, to: undefined }));
-                          }
-                        }}
+                        value={dataFinal}
+                        onChange={setDataFinal}
                       />
                     </div>
                   </div>
