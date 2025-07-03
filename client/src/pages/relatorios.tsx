@@ -134,6 +134,63 @@ export default function RelatoriosPage() {
     },
   ];
 
+  const handleGenerateExcel = async () => {
+    if (!selectedReport) {
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      let apiUrl = '';
+      let filename = '';
+      
+      if (selectedReport === 'nfe-summary') {
+        apiUrl = '/api/relatorios/nfe-resumo-excel';
+        filename = `relatorio-nfe-${dateRange.from ? formatDateLocal(dateRange.from) : ''}-${dateRange.to ? formatDateLocal(dateRange.to) : ''}.xlsx`;
+      } else if (selectedReport === 'nfse-summary') {
+        apiUrl = '/api/relatorios/nfse-resumo-excel';
+        filename = `relatorio-nfse-${dateRange.from ? formatDateLocal(dateRange.from) : ''}-${dateRange.to ? formatDateLocal(dateRange.to) : ''}.xlsx`;
+      } else {
+        throw new Error('Tipo de relatório não suporta Excel');
+      }
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          dataInicial: dateRange.from ? formatDateLocal(dateRange.from) : '',
+          dataFinal: dateRange.to ? formatDateLocal(dateRange.to) : '',
+          empresa: selectedCompany
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar relatório Excel');
+      }
+
+      // Download do arquivo Excel
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Erro ao gerar Excel:', error);
+      alert('Erro ao gerar relatório Excel. Tente novamente.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleGenerateReport = async () => {
     if (!selectedReport) {
       return;
@@ -565,6 +622,27 @@ export default function RelatoriosPage() {
                     </>
                   )}
                 </Button>
+
+                {/* Botão Excel para relatórios NFe e NFSe */}
+                {(selectedReport === 'nfe-summary' || selectedReport === 'nfse-summary') && (
+                  <Button
+                    onClick={handleGenerateExcel}
+                    disabled={!selectedReport || isGenerating}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <FileBarChart className="w-4 h-4 mr-2" />
+                        Gerar Excel
+                      </>
+                    )}
+                  </Button>
+                )}
                 
                 <p className="text-xs text-gray-400 text-center">
                   O relatório será baixado automaticamente

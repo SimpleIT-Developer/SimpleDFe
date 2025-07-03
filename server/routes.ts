@@ -15,6 +15,7 @@ import { generateNfeRelatorioPDF } from "./nfe-relatorio-generator";
 import { generateNfseRelatorioPDF } from "./nfse-relatorio-generator";
 import { generateNfseTributosRelatorioPDF } from "./nfse-tributos-relatorio-generator";
 import multer from 'multer';
+import * as XLSX from 'xlsx';
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
@@ -2332,6 +2333,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao gerar relatório de tributos NFSe:", error);
       res.status(500).json({ message: "Erro ao gerar relatório de tributos NFSe", error: (error as Error).message });
+    }
+  });
+
+  // Rota para gerar relatório de NFe em Excel
+  app.post("/api/relatorios/nfe-resumo-excel", authenticateToken, async (req: any, res) => {
+    try {
+      const { dataInicial, dataFinal, empresa } = req.body;
+      
+      console.log('Gerando relatório NFe Excel para:', dataInicial, 'até', dataFinal);
+      
+      let query = `
+        SELECT 
+          doc_num as numero_nfe,
+          doc_date_emi as data_emissao,
+          doc_emit_nome as fornecedor,
+          doc_emit_documento as cnpj_fornecedor,
+          doc_valor as valor_total_nfe,
+          doc_dest_nome as empresa_tomadora,
+          doc_dest_documento as cnpj_tomadora
+        FROM doc
+        WHERE DATE(doc_date_emi) BETWEEN ? AND ?
+      `;
+      
+      const params = [dataInicial, dataFinal];
+      
+      if (empresa && empresa !== 'all') {
+        query += ' AND doc_dest_documento = ?';
+        params.push(empresa);
+      }
+      
+      query += ' ORDER BY doc_dest_nome, doc_date_emi';
+      
+      const [results] = await mysqlPool.execute(query, params) as any;
+      
+      // Preparar dados para Excel
+      const excelData = results.map((nfe: any) => ({
+        'Número NFe': nfe.numero_nfe,
+        'Data Emissão': new Date(nfe.data_emissao).toLocaleDateString('pt-BR'),
+        'Fornecedor': nfe.fornecedor,
+        'CNPJ Fornecedor': nfe.cnpj_fornecedor,
+        'Empresa Tomadora': nfe.empresa_tomadora,
+        'CNPJ Tomadora': nfe.cnpj_tomadora,
+        'Valor Total': parseFloat(nfe.valor_total_nfe) || 0
+      }));
+
+      // Criar workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // Ajustar largura das colunas
+      const colWidths = [
+        { wch: 15 }, // Número NFe
+        { wch: 12 }, // Data Emissão
+        { wch: 30 }, // Fornecedor
+        { wch: 18 }, // CNPJ Fornecedor
+        { wch: 30 }, // Empresa Tomadora
+        { wch: 18 }, // CNPJ Tomadora
+        { wch: 15 }  // Valor Total
+      ];
+      ws['!cols'] = colWidths;
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Relatório NFe');
+
+      // Gerar buffer do Excel
+      const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+      // Definir headers para download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="relatorio-nfe-${dataInicial}-${dataFinal}.xlsx"`);
+      
+      res.send(excelBuffer);
+      
+    } catch (error) {
+      console.error("Erro ao gerar relatório Excel de NFe:", error);
+      res.status(500).json({ message: "Erro ao gerar relatório Excel", error: (error as Error).message });
+    }
+  });
+
+  // Rota para gerar relatório de NFSe em Excel
+  app.post("/api/relatorios/nfse-resumo-excel", authenticateToken, async (req: any, res) => {
+    try {
+      const { dataInicial, dataFinal, empresa } = req.body;
+      
+      console.log('Gerando relatório NFSe Excel para:', dataInicial, 'até', dataFinal);
+      
+      let query = `
+        SELECT 
+          nfse_nsu as numero_nfse,
+          nfse_data_hora as data_emissao,
+          nfse_emitente as fornecedor,
+          nfse_doc as cnpj_fornecedor,
+          nfse_valor_servico as valor_total_nfse,
+          nfse_tomador as empresa_tomadora,
+          nfse_tomador_doc as cnpj_tomadora
+        FROM nfse
+        WHERE DATE(nfse_data_hora) BETWEEN ? AND ?
+      `;
+      
+      const params = [dataInicial, dataFinal];
+      
+      if (empresa && empresa !== 'all') {
+        query += ' AND nfse_tomador_doc = ?';
+        params.push(empresa);
+      }
+      
+      query += ' ORDER BY nfse_tomador, nfse_data_hora';
+      
+      const [results] = await mysqlPool.execute(query, params) as any;
+      
+      // Preparar dados para Excel
+      const excelData = results.map((nfse: any) => ({
+        'Número NFSe': nfse.numero_nfse,
+        'Data Emissão': new Date(nfse.data_emissao).toLocaleDateString('pt-BR'),
+        'Fornecedor': nfse.fornecedor,
+        'CNPJ Fornecedor': nfse.cnpj_fornecedor,
+        'Empresa Tomadora': nfse.empresa_tomadora,
+        'CNPJ Tomadora': nfse.cnpj_tomadora,
+        'Valor Total': parseFloat(nfse.valor_total_nfse) || 0
+      }));
+
+      // Criar workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // Ajustar largura das colunas
+      const colWidths = [
+        { wch: 15 }, // Número NFSe
+        { wch: 12 }, // Data Emissão
+        { wch: 30 }, // Fornecedor
+        { wch: 18 }, // CNPJ Fornecedor
+        { wch: 30 }, // Empresa Tomadora
+        { wch: 18 }, // CNPJ Tomadora
+        { wch: 15 }  // Valor Total
+      ];
+      ws['!cols'] = colWidths;
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Relatório NFSe');
+
+      // Gerar buffer do Excel
+      const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+      // Definir headers para download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="relatorio-nfse-${dataInicial}-${dataFinal}.xlsx"`);
+      
+      res.send(excelBuffer);
+      
+    } catch (error) {
+      console.error("Erro ao gerar relatório Excel de NFSe:", error);
+      res.status(500).json({ message: "Erro ao gerar relatório Excel", error: (error as Error).message });
     }
   });
 
