@@ -63,7 +63,6 @@ export default function NFeRecebidasPage() {
       sortBy, 
       sortOrder 
     }],
-    staleTime: 1000 * 60 * 5, // 5 minutes
     queryFn: async () => {
       const params = new URLSearchParams({
         search,
@@ -141,7 +140,7 @@ export default function NFeRecebidasPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
         body: JSON.stringify({ docIds }),
       });
@@ -195,7 +194,7 @@ export default function NFeRecebidasPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
         body: JSON.stringify({ docIds }),
       });
@@ -338,7 +337,7 @@ export default function NFeRecebidasPage() {
       const response = await fetch(`/api/nfe-download/${nfe.doc_id}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
 
@@ -394,7 +393,7 @@ export default function NFeRecebidasPage() {
       const response = await fetch(`/api/nfe-danfe/${nfe.doc_id}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
 
