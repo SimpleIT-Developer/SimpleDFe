@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -483,138 +484,36 @@ export default function RelatoriosPage() {
                   <div className="space-y-3">
                     <div>
                       <Label className="text-gray-300 text-sm mb-1 block">Data Inicial</Label>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder="dd/mm/aaaa"
-                          value={dateRange.from ? dateRange.from.toLocaleDateString('pt-BR') : ""}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            let formatted = value;
-                            
-                            if (value.length >= 2) {
-                              formatted = value.slice(0, 2) + '/' + value.slice(2);
-                            }
-                            if (value.length >= 4) {
-                              formatted = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8);
-                            }
-                            
-                            e.target.value = formatted;
-                            
-                            if (value.length === 8) {
-                              const day = parseInt(value.slice(0, 2));
-                              const month = parseInt(value.slice(2, 4));
-                              const year = parseInt(value.slice(4, 8));
-                              
-                              if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900) {
-                                const date = new Date(year, month - 1, day);
-                                if (date.getDate() === day && date.getMonth() === month - 1) {
-                                  setDateRange(prev => ({ ...prev, from: date }));
-                                }
-                              }
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            if (value.length === 8) {
-                              const day = parseInt(value.slice(0, 2));
-                              const month = parseInt(value.slice(2, 4));
-                              const year = parseInt(value.slice(4, 8));
-                              
-                              if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900) {
-                                const date = new Date(year, month - 1, day);
-                                if (date.getDate() === day && date.getMonth() === month - 1) {
-                                  setDateRange(prev => ({ ...prev, from: date }));
-                                  e.target.value = date.toLocaleDateString('pt-BR');
-                                }
-                              }
-                            }
-                          }}
-                          className="bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10"
-                          maxLength={10}
-                        />
-                        <Input
-                          type="date"
-                          value={dateRange.from ? formatDateLocal(dateRange.from) : ""}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              const [year, month, day] = e.target.value.split('-');
-                              const date = new Date(Number(year), Number(month) - 1, Number(day));
-                              setDateRange(prev => ({ ...prev, from: date }));
-                            }
-                          }}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-                      </div>
+                      <DateInput
+                        placeholder="Data Inicial"
+                        value={dateRange.from ? formatDateLocal(dateRange.from) : ""}
+                        onChange={(value) => {
+                          if (value) {
+                            const [year, month, day] = value.split('-');
+                            const date = new Date(Number(year), Number(month) - 1, Number(day));
+                            setDateRange(prev => ({ ...prev, from: date }));
+                          } else {
+                            setDateRange(prev => ({ ...prev, from: undefined }));
+                          }
+                        }}
+                      />
                     </div>
                     
                     <div>
                       <Label className="text-gray-300 text-sm mb-1 block">Data Final</Label>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder="dd/mm/aaaa"
-                          value={dateRange.to ? dateRange.to.toLocaleDateString('pt-BR') : ""}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            let formatted = value;
-                            
-                            if (value.length >= 2) {
-                              formatted = value.slice(0, 2) + '/' + value.slice(2);
-                            }
-                            if (value.length >= 4) {
-                              formatted = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8);
-                            }
-                            
-                            e.target.value = formatted;
-                            
-                            if (value.length === 8) {
-                              const day = parseInt(value.slice(0, 2));
-                              const month = parseInt(value.slice(2, 4));
-                              const year = parseInt(value.slice(4, 8));
-                              
-                              if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900) {
-                                const date = new Date(year, month - 1, day);
-                                if (date.getDate() === day && date.getMonth() === month - 1) {
-                                  setDateRange(prev => ({ ...prev, to: date }));
-                                }
-                              }
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            if (value.length === 8) {
-                              const day = parseInt(value.slice(0, 2));
-                              const month = parseInt(value.slice(2, 4));
-                              const year = parseInt(value.slice(4, 8));
-                              
-                              if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900) {
-                                const date = new Date(year, month - 1, day);
-                                if (date.getDate() === day && date.getMonth() === month - 1) {
-                                  setDateRange(prev => ({ ...prev, to: date }));
-                                  e.target.value = date.toLocaleDateString('pt-BR');
-                                }
-                              }
-                            }
-                          }}
-                          className="bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10"
-                          maxLength={10}
-                        />
-                        <Input
-                          type="date"
-                          value={dateRange.to ? formatDateLocal(dateRange.to) : ""}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              const [year, month, day] = e.target.value.split('-');
-                              const date = new Date(Number(year), Number(month) - 1, Number(day));
-                              setDateRange(prev => ({ ...prev, to: date }));
-                            }
-                          }}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-                      </div>
+                      <DateInput
+                        placeholder="Data Final"
+                        value={dateRange.to ? formatDateLocal(dateRange.to) : ""}
+                        onChange={(value) => {
+                          if (value) {
+                            const [year, month, day] = value.split('-');
+                            const date = new Date(Number(year), Number(month) - 1, Number(day));
+                            setDateRange(prev => ({ ...prev, to: date }));
+                          } else {
+                            setDateRange(prev => ({ ...prev, to: undefined }));
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
