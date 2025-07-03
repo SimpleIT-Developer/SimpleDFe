@@ -461,36 +461,6 @@ export default function NFeRecebidasPage() {
     return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Indefinido</Badge>;
   };
 
-  if (isLoading) {
-    return (
-      <Layout currentPage="NFe Recebidas">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <AnimatedLogo size="lg" showPulse className="mb-4" />
-            <p className="text-white/80">Carregando NFe recebidas...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout currentPage="NFe Recebidas">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Card className="glassmorphism border-red-500/20">
-            <CardContent className="pt-6 text-center">
-              <p className="text-red-400">Erro ao carregar NFe recebidas</p>
-              <p className="text-gray-400 text-sm mt-2">
-                Verifique sua conexão e tente novamente
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
-
   const nfes = nfeData?.nfes || [];
   const totalPages = nfeData?.totalPages || 1;
   const total = nfeData?.total || 0;
@@ -669,6 +639,27 @@ export default function NFeRecebidasPage() {
           </CardHeader>
           <CardContent>
             <div className="w-full">
+              {isLoading ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <Card className="glassmorphism border-blue-500/20">
+                    <CardContent className="pt-6 text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                      <p className="text-white">Carregando NFe recebidas...</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : error ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <Card className="glassmorphism border-red-500/20">
+                    <CardContent className="pt-6 text-center">
+                      <p className="text-red-400">Erro ao carregar NFe recebidas</p>
+                      <p className="text-gray-400 text-sm mt-2">
+                        Verifique sua conexão e tente novamente
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
               <table className="w-full table-fixed">
                 <thead>
                   <tr className="border-b border-white/10">
@@ -807,8 +798,9 @@ export default function NFeRecebidasPage() {
                   ))}
                 </tbody>
               </table>
+              )}
 
-              {nfes.length === 0 && (
+              {!isLoading && !error && nfes.length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-gray-400">
                     {search || status !== "all" || empresa || fornecedor || dataInicio || dataFim
@@ -820,7 +812,7 @@ export default function NFeRecebidasPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {!isLoading && !error && totalPages > 1 && (
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
                 <div className="text-gray-400 text-sm">
                   Mostrando {((page - 1) * limit) + 1} a {Math.min(page * limit, total)} de {total} {total === 1 ? "registro" : "registros"} • Página {page} de {totalPages}
