@@ -1464,7 +1464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let query = `
         SELECT doc_id 
         FROM doc 
-        WHERE doc_date_emi >= ? AND doc_date_emi <= ?
+        WHERE DATE(doc_date_emi) >= ? AND DATE(doc_date_emi) <= ?
       `;
       const params = [dataInicial, dataFinal];
 
@@ -1523,7 +1523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let query = `
         SELECT doc_id 
         FROM doc 
-        WHERE doc_date_emi >= ? AND doc_date_emi <= ?
+        WHERE DATE(doc_date_emi) >= ? AND DATE(doc_date_emi) <= ?
       `;
       const params = [dataInicial, dataFinal];
 
@@ -1582,7 +1582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let query = `
         SELECT nfse_id 
         FROM nfse 
-        WHERE nfse_data_hora >= ? AND nfse_data_hora <= ?
+        WHERE DATE(nfse_data_hora) >= ? AND DATE(nfse_data_hora) <= ?
       `;
       const params = [dataInicial, dataFinal];
 
@@ -1666,7 +1666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let query = `
         SELECT nfse_id 
         FROM nfse 
-        WHERE nfse_data_hora >= ? AND nfse_data_hora <= ?
+        WHERE DATE(nfse_data_hora) >= ? AND DATE(nfse_data_hora) <= ?
       `;
       const params = [dataInicial, dataFinal];
 
