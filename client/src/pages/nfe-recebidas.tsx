@@ -95,11 +95,6 @@ export default function NFeRecebidasPage() {
     setPage(1);
   };
 
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    setPage(1);
-  };
-
   // Funções para controle de seleção
   const handleSelectRow = (docId: number, checked: boolean) => {
     const newSelectedRows = new Set(selectedRows);
@@ -611,7 +606,7 @@ export default function NFeRecebidasPage() {
                   <Input
                     placeholder="Buscar em todos os campos..."
                     value={search}
-                    onChange={(e) => handleSearch(e.target.value)}
+                    onChange={(e) => setSearch(e.target.value)}
                     className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400"
                   />
                 </div>
