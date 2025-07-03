@@ -4,6 +4,7 @@ import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -589,20 +590,16 @@ export default function NFSeRecebidasPage() {
                   className="bg-white/10 border-white/20 text-white placeholder-gray-400"
                 />
 
-                <Input
-                  type="date"
+                <DateInput
                   placeholder="Data Início"
                   value={dataInicio}
-                  onChange={(e) => setDataInicio(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                  onChange={setDataInicio}
                 />
 
-                <Input
-                  type="date"
+                <DateInput
                   placeholder="Data Fim"
                   value={dataFim}
-                  onChange={(e) => setDataFim(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder-gray-400"
+                  onChange={setDataFim}
                 />
               </div>
 

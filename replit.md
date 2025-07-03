@@ -125,11 +125,15 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
-- July 3, 2025: Correção de filtros de data para ignorar horário
+- July 3, 2025: Melhorias nos campos de data do sistema
   - Aplicada função DATE() em todos os filtros de data das APIs NFe e NFSe
   - Filtros de exportação XML e DANFE corrigidos para incluir dia completo
   - Data final agora inclui documentos do dia inteiro (até 23:59:59)
   - Padronização: todos os filtros usam DATE() para comparação apenas da data
+  - Criado componente DateInput reutilizável para melhor UX de digitação
+  - Implementada máscara automática dd/mm/aaaa com validação em tempo real
+  - Campos de data permitem digitação manual ou seleção via calendário
+  - Aplicado nas telas de NFe, NFSe e Relatórios para experiência consistente
 - July 2, 2025: Sistema de exportação em lote por período
   - Implementado sistema de seleção de linhas com checkboxes nas grids NFe/NFSe
   - Adicionados botões de ações em lote (Download XML, Download DANFE) no cabeçalho das grids
