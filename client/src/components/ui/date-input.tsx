@@ -55,13 +55,15 @@ export function DateInput({ value, onChange, placeholder = "dd/mm/aaaa", classNa
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatInputValue(e.target.value);
+    const inputValue = e.target.value;
+    const formatted = formatInputValue(inputValue);
     setDisplayValue(formatted);
     
+    // Only update the parent if we have a complete valid date
     const parsedDate = parseDate(formatted);
     if (parsedDate) {
       onChange(parsedDate);
-    } else if (formatted === "") {
+    } else if (inputValue === "") {
       onChange("");
     }
   };
@@ -78,16 +80,7 @@ export function DateInput({ value, onChange, placeholder = "dd/mm/aaaa", classNa
     }
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value) {
-      onChange(e.target.value);
-      const date = new Date(e.target.value + 'T00:00:00');
-      setDisplayValue(date.toLocaleDateString('pt-BR'));
-    } else {
-      onChange("");
-      setDisplayValue("");
-    }
-  };
+
 
   return (
     <div className="relative">
@@ -99,12 +92,6 @@ export function DateInput({ value, onChange, placeholder = "dd/mm/aaaa", classNa
         onBlur={handleTextBlur}
         className={`bg-white/10 border-white/20 text-white placeholder-gray-400 pr-10 ${className}`}
         maxLength={10}
-      />
-      <Input
-        type="date"
-        value={value}
-        onChange={handleDateChange}
-        className="absolute inset-0 opacity-0 cursor-pointer"
       />
       <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
     </div>
