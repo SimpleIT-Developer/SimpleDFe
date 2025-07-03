@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
 import { AnimatedLogo } from "@/components/animated-logo";
@@ -35,7 +35,6 @@ export default function NFeRecebidasPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<"all" | "integrated" | "not_integrated">("all");
   const [empresa, setEmpresa] = useState("");
   const [fornecedor, setFornecedor] = useState("");
@@ -51,19 +50,9 @@ export default function NFeRecebidasPage() {
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
 
-  // Debounce para o campo de busca
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1); // Reset page when search changes
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [search]);
-
   const { data: nfeData, isLoading, error } = useQuery({
     queryKey: ["nfe-recebidas", { 
-      search: debouncedSearch, 
+      search, 
       status, 
       empresa, 
       fornecedor, 
@@ -74,9 +63,10 @@ export default function NFeRecebidasPage() {
       sortBy, 
       sortOrder 
     }],
+    staleTime: 1000 * 60 * 5, // 5 minutes
     queryFn: async () => {
       const params = new URLSearchParams({
-        search: debouncedSearch,
+        search,
         status,
         empresa,
         fornecedor,
