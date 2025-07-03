@@ -64,6 +64,7 @@ export default function NFeRecebidasPage() {
       sortOrder 
     }],
     queryFn: async () => {
+      console.log("NFe Query executada com search:", search);
       const params = new URLSearchParams({
         search,
         status,

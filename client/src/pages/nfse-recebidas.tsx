@@ -93,6 +93,7 @@ export default function NFSeRecebidasPage() {
       sortOrder 
     }],
     queryFn: async () => {
+      console.log("NFSe Query executada com search:", search);
       const params = new URLSearchParams({
         search,
         status,
