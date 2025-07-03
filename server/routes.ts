@@ -458,12 +458,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (dataInicio) {
-        searchConditions.push("doc_date_emi >= ?");
+        searchConditions.push("DATE(doc_date_emi) >= ?");
         searchParams.push(dataInicio);
       }
 
       if (dataFim) {
-        searchConditions.push("doc_date_emi <= ?");
+        searchConditions.push("DATE(doc_date_emi) <= ?");
         searchParams.push(dataFim);
       }
 
