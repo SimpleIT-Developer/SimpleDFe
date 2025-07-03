@@ -51,20 +51,8 @@ export default function NFeRecebidasPage() {
   const [selectAll, setSelectAll] = useState(false);
 
   const { data: nfeData, isLoading, error } = useQuery({
-    queryKey: ["nfe-recebidas", { 
-      search, 
-      status, 
-      empresa, 
-      fornecedor, 
-      dataInicio, 
-      dataFim, 
-      page, 
-      limit, 
-      sortBy, 
-      sortOrder 
-    }],
+    queryKey: ["nfe-recebidas", search, status, empresa, fornecedor, dataInicio, dataFim, page, limit, sortBy, sortOrder],
     queryFn: async () => {
-      console.log("NFe Query executada com search:", search);
       const params = new URLSearchParams({
         search,
         status,

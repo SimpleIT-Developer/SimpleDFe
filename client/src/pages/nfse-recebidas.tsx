@@ -80,20 +80,8 @@ export default function NFSeRecebidasPage() {
   const [selectAll, setSelectAll] = useState(false);
 
   const { data: nfseData, isLoading, error } = useQuery({
-    queryKey: ["nfse-recebidas", { 
-      search, 
-      status, 
-      empresa, 
-      fornecedor, 
-      dataInicio, 
-      dataFim, 
-      page, 
-      limit, 
-      sortBy, 
-      sortOrder 
-    }],
+    queryKey: ["nfse-recebidas", search, status, empresa, fornecedor, dataInicio, dataFim, page, limit, sortBy, sortOrder],
     queryFn: async () => {
-      console.log("NFSe Query executada com search:", search);
       const params = new URLSearchParams({
         search,
         status,
@@ -760,7 +748,7 @@ export default function NFSeRecebidasPage() {
                     <tbody>
                       {nfses.map((nfse, index) => (
                         <tr 
-                          key={index} 
+                          key={`${nfse.nfse_id}-${index}`} 
                           className={`border-b border-white/5 hover:bg-white/5 transition-colors ${
                             selectedRows.has(nfse.nfse_id) ? 'bg-blue-500/10' : ''
                           }`}
