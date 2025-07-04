@@ -23,10 +23,7 @@ export const VersionNotificationDialog: React.FC<VersionNotificationDialogProps>
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleClose = async () => {
-    console.log('VersionNotificationDialog - handleClose - dontShowAgain:', dontShowAgain, 'isManualView:', isManualView);
-    
     if (dontShowAgain && !isManualView) {
-      console.log('Atualizando preferência para não mostrar mais');
       try {
         await updateNotificationPreference.mutateAsync(false);
         toast({
@@ -34,7 +31,6 @@ export const VersionNotificationDialog: React.FC<VersionNotificationDialogProps>
           description: "Você não receberá mais notificações de versão automaticamente.",
         });
       } catch (error) {
-        console.error('Erro ao atualizar preferência:', error);
         toast({
           title: "Erro",
           description: "Não foi possível atualizar a preferência.",

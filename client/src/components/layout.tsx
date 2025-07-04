@@ -28,16 +28,17 @@ export function Layout({ children, currentPage }: LayoutProps) {
 
   // Controlar a exibição automática do popup de versão uma vez por sessão
   useEffect(() => {
-    console.log('Layout useEffect - shouldShowPopup:', shouldShowPopup, 'isLoadingVersion:', isLoadingVersion, 'isLoadingPreferences:', isLoadingPreferences);
-    
     if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences) {
-      const hasShownThisSession = localStorage.getItem('versionDialogShownThisSession');
-      console.log('hasShownThisSession:', hasShownThisSession);
+      const hasShownThisSession = sessionStorage.getItem('versionDialogShownThisSession');
       
       if (!hasShownThisSession) {
-        console.log('Mostrando popup de versão');
-        setShowVersionDialog(true);
-        localStorage.setItem('versionDialogShownThisSession', 'true');
+        // Aguardar um pouco e depois mostrar o popup
+        const timer = setTimeout(() => {
+          setShowVersionDialog(true);
+          sessionStorage.setItem('versionDialogShownThisSession', 'true');
+        }, 2000);
+        
+        return () => clearTimeout(timer);
       }
     }
   }, [shouldShowPopup, isLoadingVersion, isLoadingPreferences]);
@@ -46,8 +47,8 @@ export function Layout({ children, currentPage }: LayoutProps) {
     mutationFn: logout,
     onSuccess: () => {
       queryClient.clear();
-      // Limpar localStorage para permitir popup no próximo login
-      localStorage.removeItem('versionDialogShownThisSession');
+      // Limpar sessionStorage para permitir popup no próximo login
+      sessionStorage.removeItem('versionDialogShownThisSession');
       toast({
         title: "Logout realizado com sucesso",
         description: "Até logo!",
