@@ -47,21 +47,21 @@ export const VersionNotificationDialog: React.FC<VersionNotificationDialogProps>
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-w-2xl max-h-[80vh] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-blue-500" />
+          <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
+            <Bell className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Novidades e Atualizações
           </DialogTitle>
         </DialogHeader>
         
         <ScrollArea className="max-h-[60vh] pr-4">
           <div className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h3 className="font-semibold text-blue-900 mb-2">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
                 Sistema SimpleDFe - Última Atualização
               </h3>
-              <div className="text-sm text-blue-800 whitespace-pre-wrap">
+              <div className="text-sm text-blue-800 dark:text-blue-200 whitespace-pre-wrap leading-relaxed">
                 {versionData.content}
               </div>
             </div>
@@ -76,7 +76,7 @@ export const VersionNotificationDialog: React.FC<VersionNotificationDialogProps>
                 checked={dontShowAgain}
                 onCheckedChange={(checked) => setDontShowAgain(checked as boolean)}
               />
-              <label htmlFor="dont-show-again" className="text-sm text-gray-600">
+              <label htmlFor="dont-show-again" className="text-sm text-gray-700 dark:text-gray-300">
                 Não mostrar notificações de versão automaticamente
               </label>
             </div>
@@ -86,7 +86,7 @@ export const VersionNotificationDialog: React.FC<VersionNotificationDialogProps>
             <Button
               variant="outline"
               onClick={handleClose}
-              className="flex-1"
+              className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Fechar
             </Button>

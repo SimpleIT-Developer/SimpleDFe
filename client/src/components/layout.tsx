@@ -20,26 +20,30 @@ export function Layout({ children, currentPage }: LayoutProps) {
   const queryClient = useQueryClient();
   const { shouldShowPopup, isLoadingVersion, isLoadingPreferences } = useVersionNotification();
   const [showVersionDialog, setShowVersionDialog] = useState(false);
-  const [hasShownThisSession, setHasShownThisSession] = useState(false);
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
   });
 
-  // Controlar a exibição automática do popup de versão baseado na preferência do usuário
-  // Mas só mostrar uma vez por sessão (até que o usuário marque para não exibir mais)
+  // Controlar a exibição automática do popup de versão uma vez por sessão
   useEffect(() => {
-    if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences && !hasShownThisSession) {
-      setShowVersionDialog(true);
-      setHasShownThisSession(true);
+    if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences) {
+      const hasShownThisSession = localStorage.getItem('versionDialogShownThisSession');
+      
+      if (!hasShownThisSession) {
+        setShowVersionDialog(true);
+        localStorage.setItem('versionDialogShownThisSession', 'true');
+      }
     }
-  }, [shouldShowPopup, isLoadingVersion, isLoadingPreferences, hasShownThisSession]);
+  }, [shouldShowPopup, isLoadingVersion, isLoadingPreferences]);
 
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
       queryClient.clear();
+      // Limpar localStorage para permitir popup no próximo login
+      localStorage.removeItem('versionDialogShownThisSession');
       toast({
         title: "Logout realizado com sucesso",
         description: "Até logo!",
