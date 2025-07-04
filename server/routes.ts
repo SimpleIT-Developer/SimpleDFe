@@ -1262,7 +1262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const idsString = docIds.join(',');
-      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/pegar_varios_nfe.php?id=${idsString}`;
+      const apiUrl = `http://robolbv.simpledfe.com.br/api/pegar_varios_nfe.php?id=${idsString}`;
       
       console.log('Fazendo requisição para:', apiUrl);
       
@@ -1297,7 +1297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const idsString = docIds.join(',');
-      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/baixar_danfe_lote.php?id=${idsString}`;
+      const apiUrl = `http://robolbv.simpledfe.com.br/api/baixar_danfe_lote.php?id=${idsString}`;
       
       console.log('Fazendo requisição para:', apiUrl);
       
@@ -1491,7 +1491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Usar a mesma API de download em lote
       const docIds = nfes.map((nfe: any) => nfe.doc_id);
       const idsString = docIds.join(',');
-      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/pegar_varios_nfe.php?id=${idsString}`;
+      const apiUrl = `http://robolbv.simpledfe.com.br/api/pegar_varios_nfe.php?id=${idsString}`;
       
       console.log('Fazendo requisição para:', apiUrl);
       
@@ -1550,7 +1550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Usar a mesma API de download em lote
       const docIds = nfes.map((nfe: any) => nfe.doc_id);
       const idsString = docIds.join(',');
-      const apiUrl = `http://robowincontabil.simpledfe.com.br/api/baixar_danfe_lote.php?id=${idsString}`;
+      const apiUrl = `http://robolbv.simpledfe.com.br/api/baixar_danfe_lote.php?id=${idsString}`;
       
       console.log('Fazendo requisição para:', apiUrl);
       
@@ -1760,7 +1760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nfe-download/:doc_id", authenticateToken, async (req: any, res) => {
     try {
       const { doc_id } = req.params;
-      const apiUrl = `https://robowincontabil.simpledfe.com.br/api/doc_download_api.php?doc_id=${doc_id}`;
+      const apiUrl = `https://robolbv.simpledfe.com.br/api/doc_download_api.php?doc_id=${doc_id}`;
       
       // Fazer a chamada para a API externa
       const response = await fetch(apiUrl);
@@ -1841,7 +1841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nfse-download/:nfse_id", authenticateToken, async (req: any, res) => {
     try {
       const { nfse_id } = req.params;
-      const apiUrl = `https://robowincontabil.simpledfe.com.br/api/nfse_download_api.php?nfse_id=${nfse_id}`;
+      const apiUrl = `https://robolbv.simpledfe.com.br/api/nfse_download_api.php?nfse_id=${nfse_id}`;
       
       // Fazer a chamada para a API externa
       const response = await fetch(apiUrl);
@@ -1880,7 +1880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { doc_id } = req.params;
       
       // Primeiro, baixar o XML da API externa
-      const apiUrl = `https://robowincontabil.simpledfe.com.br/api/doc_download_api.php?doc_id=${doc_id}`;
+      const apiUrl = `https://robolbv.simpledfe.com.br/api/doc_download_api.php?doc_id=${doc_id}`;
       const response = await fetch(apiUrl);
       
       if (!response.ok) {
