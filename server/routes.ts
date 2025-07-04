@@ -491,7 +491,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           d.doc_id_integracao,
           d.doc_codcfo,
           d.doc_id_company,
-          COALESCE(c.company_name, d.doc_dest_nome) as empresa_nome
+          COALESCE(c.company_name, d.doc_dest_nome) as empresa_nome,
+          c.company_cpf_cnpj
         FROM doc d
         LEFT JOIN company c ON d.doc_id_company = c.company_id
         ${whereClause}

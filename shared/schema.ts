@@ -82,6 +82,7 @@ export interface NFeRecebida {
   doc_codcfo: string | null;
   doc_id_company?: number;
   empresa_nome?: string;
+  company_cpf_cnpj?: string;
 }
 
 export interface NFeFilters {
