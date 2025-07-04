@@ -32,7 +32,8 @@ import {
   FileText,
   CheckCircle2,
   XCircle,
-  Eye
+  Eye,
+  Clock
 } from "lucide-react";
 import type { NFeRecebida, NFeResponse, EventoNFe } from "@shared/schema";
 
@@ -799,8 +800,17 @@ export default function NFeRecebidasPage() {
                           className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       </td>
-                      <td className="py-2 pl-1 pr-1 text-center" title={nfe.doc_status === 1 ? 'Cancelada' : 'Autorizada'}>
-                        {nfe.doc_status === 1 ? (
+                      <td className="py-2 pl-1 pr-1 text-center" 
+                          title={
+                            nfe.doc_serie === null || nfe.doc_serie === undefined 
+                              ? 'Em Processamento' 
+                              : nfe.doc_status === 1 
+                                ? 'Cancelada' 
+                                : 'Autorizada'
+                          }>
+                        {nfe.doc_serie === null || nfe.doc_serie === undefined ? (
+                          <Clock className="w-4 h-4 text-yellow-500 mx-auto" />
+                        ) : nfe.doc_status === 1 ? (
                           <XCircle className="w-4 h-4 text-red-500 mx-auto" />
                         ) : (
                           <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />

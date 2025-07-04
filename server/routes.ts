@@ -492,6 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           d.doc_codcfo,
           d.doc_id_company,
           d.doc_status,
+          d.doc_serie,
           COALESCE(c.company_name, d.doc_dest_nome) as empresa_nome,
           c.company_cpf_cnpj
         FROM doc d
