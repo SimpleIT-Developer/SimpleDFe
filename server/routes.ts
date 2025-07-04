@@ -429,69 +429,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (search) {
         searchConditions.push(`(
-          doc_num LIKE ? OR 
-          doc_dest_nome LIKE ? OR 
-          doc_emit_nome LIKE ? OR 
-          doc_emit_documento LIKE ? OR 
-          doc_nat_op LIKE ? OR
-          doc_id_integracao LIKE ?
+          d.doc_num LIKE ? OR 
+          d.doc_dest_nome LIKE ? OR 
+          d.doc_emit_nome LIKE ? OR 
+          d.doc_emit_documento LIKE ? OR 
+          d.doc_nat_op LIKE ? OR
+          d.doc_id_integracao LIKE ? OR
+          c.company_name LIKE ?
         )`);
         const searchTerm = `%${search}%`;
-        searchParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+        searchParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
       }
 
       if (status !== "all") {
         if (status === "integrated") {
-          searchConditions.push("doc_status_integracao = 1");
+          searchConditions.push("d.doc_status_integracao = 1");
         } else if (status === "not_integrated") {
-          searchConditions.push("doc_status_integracao = 0");
+          searchConditions.push("d.doc_status_integracao = 0");
         }
       }
 
       if (empresa) {
-        searchConditions.push("doc_dest_nome LIKE ?");
-        searchParams.push(`%${empresa}%`);
+        searchConditions.push("(d.doc_dest_nome LIKE ? OR c.company_name LIKE ?)");
+        searchParams.push(`%${empresa}%`, `%${empresa}%`);
       }
 
       if (fornecedor) {
-        searchConditions.push("doc_emit_nome LIKE ?");
+        searchConditions.push("d.doc_emit_nome LIKE ?");
         searchParams.push(`%${fornecedor}%`);
       }
 
       if (dataInicio) {
-        searchConditions.push("DATE(doc_date_emi) >= ?");
+        searchConditions.push("DATE(d.doc_date_emi) >= ?");
         searchParams.push(dataInicio);
       }
 
       if (dataFim) {
-        searchConditions.push("DATE(doc_date_emi) <= ?");
+        searchConditions.push("DATE(d.doc_date_emi) <= ?");
         searchParams.push(dataFim);
       }
 
       const whereClause = searchConditions.length > 0 ? `WHERE ${searchConditions.join(" AND ")}` : "";
 
       // Count total records
-      const countQuery = `SELECT COUNT(*) as total FROM doc ${whereClause}`;
+      const countQuery = `SELECT COUNT(*) as total FROM doc d LEFT JOIN company c ON d.doc_id_company = c.company_id ${whereClause}`;
       const [countResult] = await mysqlPool.execute(countQuery, searchParams) as any;
       const total = countResult[0].total;
 
-      // Get NFes with pagination and sorting
+      // Get NFes with pagination and sorting + company relationship
       const dataQuery = `
         SELECT 
-          doc_id,
-          doc_num,
-          doc_dest_nome,
-          doc_emit_nome,
-          doc_emit_documento,
-          doc_date_emi,
-          doc_valor,
-          doc_nat_op,
-          doc_status_integracao,
-          doc_id_integracao,
-          doc_codcfo
-        FROM doc 
+          d.doc_id,
+          d.doc_num,
+          d.doc_dest_nome,
+          d.doc_emit_nome,
+          d.doc_emit_documento,
+          d.doc_date_emi,
+          d.doc_valor,
+          d.doc_nat_op,
+          d.doc_status_integracao,
+          d.doc_id_integracao,
+          d.doc_codcfo,
+          d.doc_id_company,
+          COALESCE(c.company_name, d.doc_dest_nome) as empresa_nome
+        FROM doc d
+        LEFT JOIN company c ON d.doc_id_company = c.company_id
         ${whereClause}
-        ORDER BY ${sortBy} ${sortOrder.toUpperCase()}
+        ORDER BY ${sortBy.startsWith('doc_') ? 'd.' + sortBy : sortBy} ${sortOrder.toUpperCase()}
         LIMIT ${parseInt(limit)} OFFSET ${offset}
       `;
 

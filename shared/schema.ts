@@ -80,6 +80,8 @@ export interface NFeRecebida {
   doc_status_integracao: number;
   doc_id_integracao: string | null;
   doc_codcfo: string | null;
+  doc_id_company?: number;
+  empresa_nome?: string;
 }
 
 export interface NFeFilters {

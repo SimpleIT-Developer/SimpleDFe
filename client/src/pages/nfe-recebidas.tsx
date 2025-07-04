@@ -745,8 +745,8 @@ export default function NFeRecebidasPage() {
                       <td className="py-2 px-2 text-white font-mono text-sm truncate">
                         {nfe.doc_num}
                       </td>
-                      <td className="py-2 px-2 text-white text-sm truncate" title={nfe.doc_dest_nome}>
-                        {nfe.doc_dest_nome}
+                      <td className="py-2 px-2 text-white text-sm truncate" title={nfe.empresa_nome || nfe.doc_dest_nome}>
+                        {nfe.empresa_nome || nfe.doc_dest_nome}
                       </td>
                       <td className="py-2 px-2 text-gray-300 text-sm truncate" title={nfe.doc_emit_nome}>
                         {nfe.doc_emit_nome}
