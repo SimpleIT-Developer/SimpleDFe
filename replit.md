@@ -125,14 +125,15 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
-- July 4, 2025: Sistema de notificações de versão implementado
+- July 4, 2025: Sistema de notificações de versão implementado e funcionando
   - Adicionado campo show_version_notifications na tabela users
   - Criadas rotas de API para gerenciar conteúdo de versão e preferências do usuário
-  - Implementado popup automático na entrada do sistema (uma vez por sessão)
-  - Adicionado botão "Ver Atualizações" na tela USUARIOS para acesso manual
+  - Popup automático aparece 1.5s após login (uma vez por sessão)
+  - Botão "Ver Atualizações" na tela USUARIOS para acesso manual
   - Sistema utiliza arquivo version/version.txt para exibir changelog
-  - Controle de preferência permite desabilitar notificações automáticas
-  - SessionStorage usado para evitar popup repetitivo durante navegação
+  - Checkbox permite desabilitar notificações permanentemente
+  - SessionStorage controla exibição única por sessão
+  - Cores melhoradas para legibilidade (botão azul, textos contrastados)
 - July 4, 2025: Funcionalidade de visualização de eventos NFe
   - Implementada interface EventoNFe no schema para tipagem
   - Adicionada rota /api/nfe-eventos/:doc_id relacionando tabelas doc e eventos

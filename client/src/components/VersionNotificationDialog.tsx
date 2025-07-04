@@ -84,9 +84,8 @@ export const VersionNotificationDialog: React.FC<VersionNotificationDialogProps>
           
           <div className="flex gap-2">
             <Button
-              variant="outline"
               onClick={handleClose}
-              className="flex-1 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
               Fechar
             </Button>

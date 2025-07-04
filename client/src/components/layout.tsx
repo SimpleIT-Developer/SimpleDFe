@@ -32,16 +32,11 @@ export function Layout({ children, currentPage }: LayoutProps) {
     if (!isLoadingVersion && !isLoadingPreferences && !hasCheckedVersion && versionData && userPreferences) {
       setHasCheckedVersion(true);
       
-      console.log('Verificando popup - hasVersion:', versionData.hasVersion, 'showNotifications:', userPreferences.showVersionNotifications);
-      
       // Verificar se deve mostrar popup
       const shouldShow = versionData.hasVersion && userPreferences.showVersionNotifications;
       const hasShownThisSession = sessionStorage.getItem('versionDialogShownThisSession');
       
-      console.log('shouldShow:', shouldShow, 'hasShownThisSession:', hasShownThisSession);
-      
       if (shouldShow && !hasShownThisSession) {
-        console.log('Mostrando popup em 1.5s');
         setTimeout(() => {
           setShowVersionDialog(true);
           sessionStorage.setItem('versionDialogShownThisSession', 'true');
