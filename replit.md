@@ -125,11 +125,14 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
-- July 4, 2025: Terceiro status "EM PROCESSAMENTO" adicionado na coluna STATUS da NFe
-  - Implementado ícone Clock amarelo para documentos com doc_serie nulo
-  - Campo doc_serie incluído na interface NFeRecebida e na consulta SQL da API
-  - Lógica de prioridade: doc_serie nulo > doc_status cancelada > doc_status autorizada
-  - Tooltip mostra "Em Processamento" para documentos sem série definida
+- July 4, 2025: Regra de STATUS da NFe atualizada para considerar eventos
+  - Modificada consulta SQL para incluir LEFT JOIN com tabela eventos
+  - Nova lógica: doc_serie nulo + tem evento na tabela eventos = CANCELADA
+  - Nova lógica: doc_serie nulo + sem evento = EM PROCESSAMENTO 
+  - Mantida lógica: doc_serie preenchido + doc_status = 1 = CANCELADA
+  - Mantida lógica: doc_serie preenchido + doc_status != 1 = AUTORIZADA
+  - Adicionado campo has_evento na interface NFeRecebida
+  - JOIN verifica eventos_chave = doc_chave AND eventos_id_company = doc_id_company
 - July 4, 2025: Sistema de notificações de versão implementado e funcionando
   - Adicionado campo show_version_notifications na tabela users
   - Criadas rotas de API para gerenciar conteúdo de versão e preferências do usuário

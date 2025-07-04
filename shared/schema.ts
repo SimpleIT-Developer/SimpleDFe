@@ -84,8 +84,10 @@ export interface NFeRecebida {
   doc_id_company?: number;
   doc_status: number;
   doc_serie: string | null;
+  doc_chave?: string;
   empresa_nome?: string;
   company_cpf_cnpj?: string;
+  has_evento?: number;
 }
 
 export interface NFeFilters {

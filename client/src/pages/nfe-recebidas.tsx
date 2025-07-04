@@ -803,17 +803,23 @@ export default function NFeRecebidasPage() {
                       <td className="py-2 pl-1 pr-1 text-center" 
                           title={
                             nfe.doc_serie === null || nfe.doc_serie === undefined || nfe.doc_serie === ''
-                              ? 'Em Processamento' 
+                              ? (nfe.has_evento === 1 ? 'Cancelada' : 'Em Processamento')
                               : nfe.doc_status === 1 
                                 ? 'Cancelada' 
                                 : 'Autorizada'
                           }>
                         {(() => {
-                          // Debug temporário
-                          console.log(`NFe ${nfe.doc_num} - doc_serie:`, nfe.doc_serie, 'tipo:', typeof nfe.doc_serie, 'doc_status:', nfe.doc_status);
+                          // Nova lógica: doc_serie nulo + tem evento = CANCELADA
+                          // doc_serie nulo + sem evento = EM PROCESSAMENTO
+                          // doc_serie preenchido + doc_status = 1 = CANCELADA
+                          // doc_serie preenchido + doc_status != 1 = AUTORIZADA
                           
                           if (nfe.doc_serie === null || nfe.doc_serie === undefined || nfe.doc_serie === '') {
-                            return <Clock className="w-4 h-4 text-yellow-500 mx-auto" />;
+                            if (nfe.has_evento === 1) {
+                              return <XCircle className="w-4 h-4 text-red-500 mx-auto" />;
+                            } else {
+                              return <Clock className="w-4 h-4 text-yellow-500 mx-auto" />;
+                            }
                           } else if (nfe.doc_status === 1) {
                             return <XCircle className="w-4 h-4 text-red-500 mx-auto" />;
                           } else {

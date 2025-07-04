@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [countResult] = await mysqlPool.execute(countQuery, searchParams) as any;
       const total = countResult[0].total;
 
-      // Get NFes with pagination and sorting + company relationship
+      // Get NFes with pagination and sorting + company relationship + eventos info
       const dataQuery = `
         SELECT 
           d.doc_id,
@@ -493,11 +493,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           d.doc_id_company,
           d.doc_status,
           d.doc_serie,
+          d.doc_chave,
           COALESCE(c.company_name, d.doc_dest_nome) as empresa_nome,
-          c.company_cpf_cnpj
+          c.company_cpf_cnpj,
+          CASE 
+            WHEN e.eventos_id IS NOT NULL THEN 1 
+            ELSE 0 
+          END as has_evento
         FROM doc d
         LEFT JOIN company c ON d.doc_id_company = c.company_id
+        LEFT JOIN eventos e ON d.doc_chave = e.eventos_chave AND d.doc_id_company = e.eventos_id_company
         ${whereClause}
+        GROUP BY d.doc_id
         ORDER BY ${sortBy.startsWith('doc_') ? 'd.' + sortBy : sortBy} ${sortOrder.toUpperCase()}
         LIMIT ${parseInt(limit)} OFFSET ${offset}
       `;
