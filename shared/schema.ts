@@ -107,6 +107,17 @@ export interface NFeResponse {
   limit: number;
 }
 
+// Eventos NFe interfaces
+export interface EventoNFe {
+  eventos_id: number;
+  eventos_id_company: number;
+  eventos_chave: string;
+  eventos_code_evento: string;
+  eventos_desc_evento: string;
+  eventos_data: string;
+  eventos_prot: string;
+}
+
 // NFSe Recebidas interfaces
 export interface NFSeRecebida {
   nfse_id: number;

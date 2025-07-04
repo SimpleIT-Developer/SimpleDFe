@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
@@ -30,9 +31,10 @@ import {
   MoreVertical,
   FileText,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Eye
 } from "lucide-react";
-import type { NFeRecebida, NFeResponse } from "@shared/schema";
+import type { NFeRecebida, NFeResponse, EventoNFe } from "@shared/schema";
 
 // Função para formatar CNPJ
 const formatCNPJ = (cnpj: string): string => {
@@ -60,6 +62,11 @@ export default function NFeRecebidasPage() {
   // Estados para seleção de linhas
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [selectAll, setSelectAll] = useState(false);
+  
+  // Estados para dialog de eventos
+  const [eventosDialogOpen, setEventosDialogOpen] = useState(false);
+  const [eventosData, setEventosData] = useState<EventoNFe[]>([]);
+  const [loadingEventos, setLoadingEventos] = useState(false);
 
   const { data: nfeData, isLoading, error } = useQuery({
     queryKey: ["nfe-recebidas", search, status, empresa, fornecedor, dataInicio, dataFim, page, limit, sortBy, sortOrder],
@@ -93,6 +100,37 @@ export default function NFeRecebidasPage() {
       setSortOrder("asc");
     }
     setPage(1);
+  };
+
+  // Função para buscar eventos de uma NFe
+  const handleVisualizarEventos = async (nfe: NFeRecebida) => {
+    setLoadingEventos(true);
+    setEventosDialogOpen(true);
+    
+    try {
+      const response = await fetch(`/api/nfe-eventos/${nfe.doc_id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao buscar eventos');
+      }
+      
+      const data = await response.json();
+      setEventosData(data.eventos || []);
+    } catch (error) {
+      console.error('Erro ao buscar eventos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao buscar eventos da NFe",
+        variant: "destructive",
+      });
+      setEventosData([]);
+    } finally {
+      setLoadingEventos(false);
+    }
   };
 
   // Funções para controle de seleção
@@ -812,6 +850,15 @@ export default function NFeRecebidasPage() {
                           <Button
                             size="sm"
                             variant="outline"
+                            onClick={() => handleVisualizarEventos(nfe)}
+                            className="border-orange-500/30 text-orange-400 hover:bg-orange-500/20 w-7 h-7 p-0"
+                            title="Visualizar Eventos"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={() => handleImprimirDANFE(nfe)}
                             className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20 w-7 h-7 p-0"
                             title="Imprimir DANFE"
@@ -905,6 +952,51 @@ export default function NFeRecebidasPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog para visualizar eventos */}
+      <Dialog open={eventosDialogOpen} onOpenChange={setEventosDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Eventos da NFe</DialogTitle>
+          </DialogHeader>
+          
+          {loadingEventos ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="w-6 h-6 animate-spin mr-2" />
+              <span>Carregando eventos...</span>
+            </div>
+          ) : eventosData.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Nenhum evento encontrado para esta NFe.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {eventosData.map((evento, index) => (
+                <div key={evento.eventos_id} className="border rounded-lg p-4 bg-gray-50">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-semibold text-sm text-gray-700">Código do Evento:</label>
+                      <p className="text-gray-900">{evento.eventos_code_evento}</p>
+                    </div>
+                    <div>
+                      <label className="font-semibold text-sm text-gray-700">Data do Evento:</label>
+                      <p className="text-gray-900">{formatDate(evento.eventos_data)}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="font-semibold text-sm text-gray-700">Descrição do Evento:</label>
+                      <p className="text-gray-900">{evento.eventos_desc_evento}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="font-semibold text-sm text-gray-700">Protocolo:</label>
+                      <p className="text-gray-900 font-mono">{evento.eventos_prot}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

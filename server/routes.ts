@@ -1792,6 +1792,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para buscar eventos de uma NFe
+  app.get("/api/nfe-eventos/:doc_id", authenticateToken, async (req: any, res) => {
+    try {
+      const { doc_id } = req.params;
+      
+      // Primeiro buscar a NFe para obter doc_id_company e doc_chave
+      const nfeQuery = `
+        SELECT doc_id_company, doc_chave 
+        FROM doc 
+        WHERE doc_id = ?
+      `;
+      
+      const [nfeResult] = await mysqlPool.execute(nfeQuery, [doc_id]) as any;
+      
+      if (nfeResult.length === 0) {
+        return res.status(404).json({ message: "NFe não encontrada" });
+      }
+      
+      const { doc_id_company, doc_chave } = nfeResult[0];
+      
+      // Buscar eventos relacionados
+      const eventosQuery = `
+        SELECT 
+          eventos_id,
+          eventos_id_company,
+          eventos_chave,
+          eventos_code_evento,
+          eventos_desc_evento,
+          eventos_data,
+          eventos_prot
+        FROM eventos 
+        WHERE eventos_id_company = ? AND eventos_chave = ?
+        ORDER BY eventos_data DESC
+      `;
+      
+      const [eventos] = await mysqlPool.execute(eventosQuery, [doc_id_company, doc_chave]) as any;
+      
+      res.json({ eventos });
+    } catch (error) {
+      console.error("Eventos fetch error:", error);
+      res.status(500).json({ message: "Erro ao buscar eventos da NFe" });
+    }
+  });
+
   // Rota para download de XML da NFSe via API externa
   app.get("/api/nfse-download/:nfse_id", authenticateToken, async (req: any, res) => {
     try {
