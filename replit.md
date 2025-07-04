@@ -125,6 +125,14 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
+- July 4, 2025: Coluna STATUS adicionada na grid NFe
+  - Implementada coluna STATUS com ícones entre checkbox e número na grid NFe
+  - Campo doc_status da tabela doc incluído na API (/api/nfe-recebidas)
+  - Ícones CheckCircle2 (verde) para Autorizada (doc_status = 0) 
+  - Ícones XCircle (vermelho) para Cancelada (doc_status = 1)
+  - Tooltip mostra texto do status ao passar mouse sobre ícone
+  - Tooltip formatado para CNPJ no campo EMPRESA (XX.XXX.XXX/XXXX-XX)
+  - Otimizado espaçamento entre colunas checkbox e STATUS para melhor layout
 - July 3, 2025: Melhorias nos campos de data do sistema
   - Aplicada função DATE() em todos os filtros de data das APIs NFe e NFSe
   - Filtros de exportação XML e DANFE corrigidos para incluir dia completo

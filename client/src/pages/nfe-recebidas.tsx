@@ -670,7 +670,7 @@ export default function NFeRecebidasPage() {
               <table className="w-full table-fixed">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="text-left py-3 px-1 w-10">
+                    <th className="text-left py-3 pl-2 pr-0 w-8">
                       <Checkbox
                         checked={selectAll}
                         onCheckedChange={handleSelectAll}
@@ -678,7 +678,7 @@ export default function NFeRecebidasPage() {
                         title="Selecionar todos"
                       />
                     </th>
-                    <th className="text-center py-3 px-1 w-12">
+                    <th className="text-center py-3 pl-1 pr-1 w-10">
                       <Button
                         variant="ghost"
                         onClick={() => handleSort("doc_status")}
@@ -754,14 +754,14 @@ export default function NFeRecebidasPage() {
                         selectedRows.has(nfe.doc_id) ? 'bg-blue-500/10' : ''
                       }`}
                     >
-                      <td className="py-2 px-1">
+                      <td className="py-2 pl-2 pr-0">
                         <Checkbox
                           checked={selectedRows.has(nfe.doc_id)}
                           onCheckedChange={(checked) => handleSelectRow(nfe.doc_id, checked as boolean)}
                           className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       </td>
-                      <td className="py-2 px-1 text-center" title={nfe.doc_status === 1 ? 'Cancelada' : 'Autorizada'}>
+                      <td className="py-2 pl-1 pr-1 text-center" title={nfe.doc_status === 1 ? 'Cancelada' : 'Autorizada'}>
                         {nfe.doc_status === 1 ? (
                           <XCircle className="w-4 h-4 text-red-500 mx-auto" />
                         ) : (
