@@ -18,30 +18,37 @@ export function Layout({ children, currentPage }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { shouldShowPopup, isLoadingVersion, isLoadingPreferences } = useVersionNotification();
+  const { versionData, userPreferences, isLoadingVersion, isLoadingPreferences } = useVersionNotification();
   const [showVersionDialog, setShowVersionDialog] = useState(false);
+  const [hasCheckedVersion, setHasCheckedVersion] = useState(false);
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
   });
 
-  // Controlar a exibição automática do popup de versão uma vez por sessão
+  // Controlar a exibição automática do popup de versão
   useEffect(() => {
-    if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences) {
+    if (!isLoadingVersion && !isLoadingPreferences && !hasCheckedVersion && versionData && userPreferences) {
+      setHasCheckedVersion(true);
+      
+      console.log('Verificando popup - hasVersion:', versionData.hasVersion, 'showNotifications:', userPreferences.showVersionNotifications);
+      
+      // Verificar se deve mostrar popup
+      const shouldShow = versionData.hasVersion && userPreferences.showVersionNotifications;
       const hasShownThisSession = sessionStorage.getItem('versionDialogShownThisSession');
       
-      if (!hasShownThisSession) {
-        // Aguardar um pouco e depois mostrar o popup
-        const timer = setTimeout(() => {
+      console.log('shouldShow:', shouldShow, 'hasShownThisSession:', hasShownThisSession);
+      
+      if (shouldShow && !hasShownThisSession) {
+        console.log('Mostrando popup em 1.5s');
+        setTimeout(() => {
           setShowVersionDialog(true);
           sessionStorage.setItem('versionDialogShownThisSession', 'true');
-        }, 2000);
-        
-        return () => clearTimeout(timer);
+        }, 1500);
       }
     }
-  }, [shouldShowPopup, isLoadingVersion, isLoadingPreferences]);
+  }, [versionData, userPreferences, isLoadingVersion, isLoadingPreferences, hasCheckedVersion]);
 
   const logoutMutation = useMutation({
     mutationFn: logout,
