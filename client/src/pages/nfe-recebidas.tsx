@@ -802,19 +802,24 @@ export default function NFeRecebidasPage() {
                       </td>
                       <td className="py-2 pl-1 pr-1 text-center" 
                           title={
-                            nfe.doc_serie === null || nfe.doc_serie === undefined 
+                            nfe.doc_serie === null || nfe.doc_serie === undefined || nfe.doc_serie === ''
                               ? 'Em Processamento' 
                               : nfe.doc_status === 1 
                                 ? 'Cancelada' 
                                 : 'Autorizada'
                           }>
-                        {nfe.doc_serie === null || nfe.doc_serie === undefined ? (
-                          <Clock className="w-4 h-4 text-yellow-500 mx-auto" />
-                        ) : nfe.doc_status === 1 ? (
-                          <XCircle className="w-4 h-4 text-red-500 mx-auto" />
-                        ) : (
-                          <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
-                        )}
+                        {(() => {
+                          // Debug temporário
+                          console.log(`NFe ${nfe.doc_num} - doc_serie:`, nfe.doc_serie, 'tipo:', typeof nfe.doc_serie, 'doc_status:', nfe.doc_status);
+                          
+                          if (nfe.doc_serie === null || nfe.doc_serie === undefined || nfe.doc_serie === '') {
+                            return <Clock className="w-4 h-4 text-yellow-500 mx-auto" />;
+                          } else if (nfe.doc_status === 1) {
+                            return <XCircle className="w-4 h-4 text-red-500 mx-auto" />;
+                          } else {
+                            return <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />;
+                          }
+                        })()}
                       </td>
                       <td className="py-2 px-2 text-white font-mono text-sm truncate">
                         {nfe.doc_num}
