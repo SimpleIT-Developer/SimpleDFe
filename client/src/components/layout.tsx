@@ -28,10 +28,14 @@ export function Layout({ children, currentPage }: LayoutProps) {
 
   // Controlar a exibição automática do popup de versão uma vez por sessão
   useEffect(() => {
+    console.log('Layout useEffect - shouldShowPopup:', shouldShowPopup, 'isLoadingVersion:', isLoadingVersion, 'isLoadingPreferences:', isLoadingPreferences);
+    
     if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences) {
       const hasShownThisSession = localStorage.getItem('versionDialogShownThisSession');
+      console.log('hasShownThisSession:', hasShownThisSession);
       
       if (!hasShownThisSession) {
+        console.log('Mostrando popup de versão');
         setShowVersionDialog(true);
         localStorage.setItem('versionDialogShownThisSession', 'true');
       }

@@ -78,6 +78,10 @@ export const useVersionNotification = () => {
 
   // Determinar se deve mostrar o popup
   const shouldShowPopup = versionData?.hasVersion && userPreferences?.showVersionNotifications;
+  
+  console.log('useVersionNotification - versionData:', versionData);
+  console.log('useVersionNotification - userPreferences:', userPreferences);
+  console.log('useVersionNotification - shouldShowPopup:', shouldShowPopup);
 
   return {
     versionData,
