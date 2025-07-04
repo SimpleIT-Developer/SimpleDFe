@@ -26,10 +26,13 @@ export function Layout({ children, currentPage }: LayoutProps) {
     retry: false,
   });
 
-  // Controlar a exibição automática do popup de versão
+  // Controlar a exibição automática do popup de versão apenas uma vez por sessão
   useEffect(() => {
-    if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences) {
+    const versionShownThisSession = sessionStorage.getItem('versionDialogShown');
+    
+    if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences && !versionShownThisSession) {
       setShowVersionDialog(true);
+      sessionStorage.setItem('versionDialogShown', 'true');
     }
   }, [shouldShowPopup, isLoadingVersion, isLoadingPreferences]);
 
@@ -37,6 +40,8 @@ export function Layout({ children, currentPage }: LayoutProps) {
     mutationFn: logout,
     onSuccess: () => {
       queryClient.clear();
+      // Limpar sessionStorage para permitir que o popup de versão apareça no próximo login
+      sessionStorage.removeItem('versionDialogShown');
       toast({
         title: "Logout realizado com sucesso",
         description: "Até logo!",
