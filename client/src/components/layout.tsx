@@ -5,6 +5,9 @@ import { AnimatedLogo } from "@/components/animated-logo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, BarChart3, Settings, FileText, Building2, Receipt, FileCheck, Users, Truck, FileBarChart } from "lucide-react";
+import { VersionNotificationDialog } from "@/components/VersionNotificationDialog";
+import { useVersionNotification } from "@/hooks/useVersionNotification";
+import { useState, useEffect } from "react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,11 +18,20 @@ export function Layout({ children, currentPage }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { shouldShowPopup, isLoadingVersion, isLoadingPreferences } = useVersionNotification();
+  const [showVersionDialog, setShowVersionDialog] = useState(false);
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
   });
+
+  // Controlar a exibição automática do popup de versão
+  useEffect(() => {
+    if (shouldShowPopup && !isLoadingVersion && !isLoadingPreferences) {
+      setShowVersionDialog(true);
+    }
+  }, [shouldShowPopup, isLoadingVersion, isLoadingPreferences]);
 
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -78,14 +90,15 @@ export function Layout({ children, currentPage }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen gradient-bg">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 glassmorphism border-r border-white/20">
-        <div className="flex flex-col h-full p-6">
-          {/* Logo in Sidebar */}
-          <div className="flex items-center space-x-3 mb-8">
-            <AnimatedLogo size="sm" />
-            <div>
+    <>
+      <div className="min-h-screen gradient-bg">
+        {/* Sidebar */}
+        <div className="fixed inset-y-0 left-0 w-64 glassmorphism border-r border-white/20">
+          <div className="flex flex-col h-full p-6">
+            {/* Logo in Sidebar */}
+            <div className="flex items-center space-x-3 mb-8">
+              <AnimatedLogo size="sm" />
+              <div>
               <h2 className="text-white font-semibold">SimpleDFe</h2>
               <p className="text-gray-400 text-xs">v1.0.0</p>
             </div>
@@ -231,5 +244,13 @@ export function Layout({ children, currentPage }: LayoutProps) {
         </main>
       </div>
     </div>
+
+    {/* Version Notification Dialog */}
+    <VersionNotificationDialog
+      isOpen={showVersionDialog}
+      onClose={() => setShowVersionDialog(false)}
+      isManualView={false}
+    />
+    </>
   );
 }

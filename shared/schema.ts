@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   type: text("type"),
   status: integer("status").default(1),
+  showVersionNotifications: boolean("show_version_notifications").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

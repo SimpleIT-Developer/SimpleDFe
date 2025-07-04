@@ -3014,6 +3014,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para buscar conteúdo da versão
+  app.get("/api/version-content", authenticateToken, async (req: any, res) => {
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const versionFilePath = path.join(process.cwd(), 'version', 'version.txt');
+      
+      if (fs.existsSync(versionFilePath)) {
+        const content = fs.readFileSync(versionFilePath, 'utf-8');
+        res.json({ content, hasVersion: true });
+      } else {
+        res.json({ content: '', hasVersion: false });
+      }
+    } catch (error) {
+      console.error("Erro ao buscar conteúdo da versão:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Rota para atualizar preferência de notificação de versão
+  app.post("/api/users/version-notification", authenticateToken, async (req: any, res) => {
+    try {
+      const { showNotifications } = req.body;
+      const userId = req.user.id;
+      
+      await db.update(users)
+        .set({ showVersionNotifications: showNotifications })
+        .where(eq(users.id, userId));
+      
+      res.json({ message: "Preferência atualizada com sucesso" });
+    } catch (error) {
+      console.error("Erro ao atualizar preferência:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Rota para buscar preferências do usuário
+  app.get("/api/users/preferences", authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      const user = await db.select({
+        showVersionNotifications: users.showVersionNotifications
+      }).from(users).where(eq(users.id, userId)).limit(1);
+      
+      if (user.length === 0) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      res.json(user[0]);
+    } catch (error) {
+      console.error("Erro ao buscar preferências do usuário:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
   // Rota de teste para envio de email
   app.post("/api/test-email", authenticateToken, async (req: any, res) => {
     try {

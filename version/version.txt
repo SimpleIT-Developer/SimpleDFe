@@ -1,0 +1,26 @@
+Registro de Atualizações - Melhorias e Correções
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: Melhoria na digitação de datas nos filtros.
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: Melhoria na busca dentro da tela de NFe, que quando buscava a tela toda atualizava a cada caracter digitado.
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Nova Funcionalidade
+Descrição: Exportação de XML NFe e XML NFSe individual, por lote e por data.
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Nova Funcionalidade
+Descrição: Exportação do relatório de resumo de NFe e NFSe em Excel.
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: Na tela de NFe o campo Empresa agora reflete exatament a Empresa da Nota Fiscal.

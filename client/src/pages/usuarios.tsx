@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Plus, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from "lucide-react";
+import { Edit, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Plus, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Bell } from "lucide-react";
+import { VersionNotificationDialog } from "@/components/VersionNotificationDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,6 +49,7 @@ export default function UsuariosPage() {
   // Estados dos modais
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [versionDialogOpen, setVersionDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Usuario | null>(null);
 
   const handleRefreshUsuarios = () => {
@@ -321,6 +323,15 @@ export default function UsuariosPage() {
             <Badge variant="secondary" className="text-primary">
               {total} {total === 1 ? "usuário" : "usuários"}
             </Badge>
+            
+            <Button
+              onClick={() => setVersionDialogOpen(true)}
+              variant="outline"
+              className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Ver Atualizações
+            </Button>
             
             <Button
               onClick={handleRefreshUsuarios}
@@ -845,6 +856,13 @@ export default function UsuariosPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Version Notification Dialog */}
+      <VersionNotificationDialog
+        isOpen={versionDialogOpen}
+        onClose={() => setVersionDialogOpen(false)}
+        isManualView={true}
+      />
     </Layout>
   );
 }
