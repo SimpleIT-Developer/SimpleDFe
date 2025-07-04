@@ -32,6 +32,14 @@ import {
 } from "lucide-react";
 import type { NFeRecebida, NFeResponse } from "@shared/schema";
 
+// Função para formatar CNPJ
+const formatCNPJ = (cnpj: string): string => {
+  if (!cnpj) return '';
+  const cleaned = cnpj.replace(/\D/g, '');
+  if (cleaned.length !== 14) return cnpj;
+  return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+};
+
 export default function NFeRecebidasPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -747,7 +755,7 @@ export default function NFeRecebidasPage() {
                       </td>
                       <td 
                         className="py-2 px-2 text-white text-sm truncate" 
-                        title={`${nfe.empresa_nome || nfe.doc_dest_nome}${nfe.company_cpf_cnpj ? `\nCNPJ: ${nfe.company_cpf_cnpj}` : ''}`}
+                        title={`${nfe.empresa_nome || nfe.doc_dest_nome}${nfe.company_cpf_cnpj ? `\nCNPJ: ${formatCNPJ(nfe.company_cpf_cnpj)}` : ''}`}
                       >
                         {nfe.empresa_nome || nfe.doc_dest_nome}
                       </td>
