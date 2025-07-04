@@ -28,7 +28,9 @@ import {
   CheckSquare,
   Square,
   MoreVertical,
-  FileText
+  FileText,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import type { NFeRecebida, NFeResponse } from "@shared/schema";
 
@@ -676,6 +678,15 @@ export default function NFeRecebidasPage() {
                         title="Selecionar todos"
                       />
                     </th>
+                    <th className="text-center py-3 px-2 w-16">
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("doc_status")}
+                        className="text-gray-300 hover:text-white p-0 h-auto font-semibold text-xs"
+                      >
+                        Status {getSortIcon("doc_status")}
+                      </Button>
+                    </th>
                     <th className="text-left py-3 px-2 w-20">
                       <Button
                         variant="ghost"
@@ -749,6 +760,13 @@ export default function NFeRecebidasPage() {
                           onCheckedChange={(checked) => handleSelectRow(nfe.doc_id, checked as boolean)}
                           className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
+                      </td>
+                      <td className="py-2 px-2 text-center" title={nfe.doc_status === 1 ? 'Cancelada' : 'Autorizada'}>
+                        {nfe.doc_status === 1 ? (
+                          <XCircle className="w-4 h-4 text-red-500 mx-auto" />
+                        ) : (
+                          <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
+                        )}
                       </td>
                       <td className="py-2 px-2 text-white font-mono text-sm truncate">
                         {nfe.doc_num}

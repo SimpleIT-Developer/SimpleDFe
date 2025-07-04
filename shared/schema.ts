@@ -81,6 +81,7 @@ export interface NFeRecebida {
   doc_id_integracao: string | null;
   doc_codcfo: string | null;
   doc_id_company?: number;
+  doc_status: number;
   empresa_nome?: string;
   company_cpf_cnpj?: string;
 }
