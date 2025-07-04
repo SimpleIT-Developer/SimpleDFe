@@ -24,3 +24,13 @@ Data: 04/07/2025
 Ticket: #
 Tipo: Melhoria
 Descrição: Na tela de NFe o campo Empresa agora reflete exatament a Empresa da Nota Fiscal.
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: Na tela de NFe foi incluído um campo STATUS onde podemos ver se a NFe está EM PROCESSAMENTO, AUTORIZADA ou CANCELADA
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: Na tela de NFe foi incluído o botao de VERIFICAR EVENTOS DA NFe.
