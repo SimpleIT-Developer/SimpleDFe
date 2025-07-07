@@ -1166,9 +1166,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Rota para verificar cadastro no ERP
-  app.post("/api/fornecedores/verificar-erp", authenticateToken, async (req: any, res) => {
-    try {
-      const { fornecedorId, cnpj } = req.body;
+  //app.post("/api/fornecedores/verificar-erp", authenticateToken, async (req: any, res) => {
+    //try {
+      //const { fornecedorId, cnpj } = req.body;
 
       // Validação básica
       if (!fornecedorId || !cnpj) {
