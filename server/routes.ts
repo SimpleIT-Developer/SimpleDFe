@@ -1247,11 +1247,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (webhookError) {
         console.error("Erro ao consultar webhook:", webhookError);
+        try {
+        // Código principal aqui...
+      } catch (webhookError) {
+        console.error("Erro ao consultar webhook:", webhookError);
         // Se houver erro no webhook, assumir que não está cadastrado
         res.json({ 
           cadastrado: false, 
           message: "Erro ao consultar o ERP. Tente novamente." 
         });
+      }
       }
     } catch (error) {
       console.error("Erro ao verificar cadastro no ERP:", error);
