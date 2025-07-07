@@ -125,6 +125,13 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
+- July 7, 2025: Completa desabilitação de funcionalidades de ERP e webhook
+  - Comentada consulta à tabela simplefcfo no dashboard (API /api/dashboard/stats)
+  - Valor fornecedoresSemERP definido como 0 fixo
+  - Confirmado que todas as APIs relacionadas ao webhook estão comentadas
+  - Confirmado que todas as operações na tabela simplefcfo estão desabilitadas
+  - Sistema não possui mais nenhum serviço em background consultando fornecedores
+  - Nenhum timer, agendamento ou processo automático ativo
 - July 4, 2025: Regra de STATUS da NFe atualizada para considerar eventos
   - Modificada consulta SQL para incluir LEFT JOIN com tabela eventos
   - Nova lógica: doc_serie nulo + tem evento na tabela eventos = CANCELADA

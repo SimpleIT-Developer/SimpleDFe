@@ -946,7 +946,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [nfeIntegradasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM doc WHERE doc_status_integracao = 1') as any;
       const [nfseRecebidasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM nfse') as any;
       const [nfseIntegradasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM nfse WHERE nfse_status_integracao = 1') as any;
-      const [fornecedoresSemERPResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM simplefcfo WHERE codigo_erp IS NULL OR codigo_erp = ""') as any;
+      // Consulta comentada - tabela simplefcfo desabilitada
+      // const [fornecedoresSemERPResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM simplefcfo WHERE codigo_erp IS NULL OR codigo_erp = ""') as any;
 
       const stats = {
         totalCNPJ: totalCNPJResult[0]?.total || 0,
@@ -954,7 +955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nfeIntegradas: nfeIntegradasResult[0]?.total || 0,
         nfseRecebidas: nfseRecebidasResult[0]?.total || 0,
         nfseIntegradas: nfseIntegradasResult[0]?.total || 0,
-        fornecedoresSemERP: fornecedoresSemERPResult[0]?.total || 0
+        fornecedoresSemERP: 0 // Valor fixo - funcionalidade de fornecedores desabilitada
       };
 
       res.json(stats);
