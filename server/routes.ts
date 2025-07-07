@@ -946,8 +946,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [nfeIntegradasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM doc WHERE doc_status_integracao = 1') as any;
       const [nfseRecebidasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM nfse') as any;
       const [nfseIntegradasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM nfse WHERE nfse_status_integracao = 1') as any;
-      // Consulta comentada - tabela simplefcfo desabilitada
-      // const [fornecedoresSemERPResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM simplefcfo WHERE codigo_erp IS NULL OR codigo_erp = ""') as any;
+      // Consulta reativada para mostrar estatísticas corretas
+      const [fornecedoresSemERPResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM simplefcfo WHERE codigo_erp IS NULL OR codigo_erp = ""') as any;
 
       const stats = {
         totalCNPJ: totalCNPJResult[0]?.total || 0,
@@ -955,7 +955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nfeIntegradas: nfeIntegradasResult[0]?.total || 0,
         nfseRecebidas: nfseRecebidasResult[0]?.total || 0,
         nfseIntegradas: nfseIntegradasResult[0]?.total || 0,
-        fornecedoresSemERP: 0 // Valor fixo - funcionalidade de fornecedores desabilitada
+        fornecedoresSemERP: fornecedoresSemERPResult[0]?.total || 0
       };
 
       res.json(stats);
@@ -1117,8 +1117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rota para buscar fornecedores (comentada conforme solicitação - usa tabela simplefcfo)
-  /*
+  // Rota para buscar fornecedores (reativada - apenas busca, sem verificação ERP)
   app.get("/api/fornecedores", authenticateToken, async (req: any, res) => {
     try {
       const {
@@ -1140,12 +1139,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
       }
 
-      // Count total records (comentado - operação na tabela simplefcfo)
+      // Count total records
       const countQuery = `SELECT COUNT(*) as total FROM simplefcfo ${whereClause}`;
       const [countResult] = await mysqlPool.execute(countQuery, queryParams) as any;
       const total = countResult[0].total;
 
-      // Get fornecedores with pagination and sorting (comentado - consulta na tabela simplefcfo)
+      // Get fornecedores with pagination and sorting
       const dataQuery = `SELECT id, nome, cnpj, codigo_erp, data_cadastro FROM simplefcfo ${whereClause} ORDER BY ${sortBy} ${sortOrder.toUpperCase()} LIMIT ${parseInt(limit)} OFFSET ${offset}`;
       
       const [fornecedores] = await mysqlPool.execute(dataQuery, queryParams) as any;
@@ -1166,7 +1165,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar fornecedores" });
     }
   });
-  */
 
   // Rota para verificar cadastro no ERP (comentada conforme solicitação)
   /*
