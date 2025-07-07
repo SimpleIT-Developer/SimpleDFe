@@ -86,7 +86,8 @@ function FornecedoresPage() {
     },
   });
 
-  // Mutação para verificar cadastro no ERP
+  // Mutação para verificar cadastro no ERP (comentada - API correspondente foi desabilitada)
+  /*
   const verificarERPMutation = useMutation({
     mutationFn: async (fornecedor: Fornecedor) => {
       const cnpjFormatted = formatCNPJ(fornecedor.cnpj);
@@ -131,6 +132,7 @@ function FornecedoresPage() {
       });
     },
   });
+  */
 
   const fornecedores = fornecedorData?.fornecedores || [];
   const total = fornecedorData?.total || 0;
@@ -142,10 +144,13 @@ function FornecedoresPage() {
     setViewModalOpen(true);
   };
 
+  // Função para verificar ERP (comentada - funcionalidade desabilitada)
+  /*
   const handleVerificarERP = (fornecedor: Fornecedor) => {
     setVerificandoERP(fornecedor.id);
     verificarERPMutation.mutate(fornecedor);
   };
+  */
 
   // Função para limpar filtros
   const handleClearFilters = () => {
@@ -356,6 +361,7 @@ function FornecedoresPage() {
                               >
                                 <Eye className="w-3 h-3" />
                               </Button>
+                              {/* Botão de verificação ERP comentado - funcionalidade desabilitada
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -370,6 +376,7 @@ function FornecedoresPage() {
                                   <RefreshCw className="w-3 h-3" />
                                 )}
                               </Button>
+                              */}
                             </div>
                           </td>
                         </tr>

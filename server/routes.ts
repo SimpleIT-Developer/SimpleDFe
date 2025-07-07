@@ -1116,7 +1116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rota para buscar fornecedores
+  // Rota para buscar fornecedores (comentada conforme solicitação - usa tabela simplefcfo)
+  /*
   app.get("/api/fornecedores", authenticateToken, async (req: any, res) => {
     try {
       const {
@@ -1138,12 +1139,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         queryParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
       }
 
-      // Count total records
+      // Count total records (comentado - operação na tabela simplefcfo)
       const countQuery = `SELECT COUNT(*) as total FROM simplefcfo ${whereClause}`;
       const [countResult] = await mysqlPool.execute(countQuery, queryParams) as any;
       const total = countResult[0].total;
 
-      // Get fornecedores with pagination and sorting  
+      // Get fornecedores with pagination and sorting (comentado - consulta na tabela simplefcfo)
       const dataQuery = `SELECT id, nome, cnpj, codigo_erp, data_cadastro FROM simplefcfo ${whereClause} ORDER BY ${sortBy} ${sortOrder.toUpperCase()} LIMIT ${parseInt(limit)} OFFSET ${offset}`;
       
       const [fornecedores] = await mysqlPool.execute(dataQuery, queryParams) as any;
@@ -1164,18 +1165,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar fornecedores" });
     }
   });
+  */
 
-  // Rota para verificar cadastro no ERP
-  //app.post("/api/fornecedores/verificar-erp", authenticateToken, async (req: any, res) => {
-    //try {
-      //const { fornecedorId, cnpj } = req.body;
+  // Rota para verificar cadastro no ERP (comentada conforme solicitação)
+  /*
+  app.post("/api/fornecedores/verificar-erp", authenticateToken, async (req: any, res) => {
+    try {
+      const { fornecedorId, cnpj } = req.body;
 
       // Validação básica
       if (!fornecedorId || !cnpj) {
         return res.status(400).json({ message: "ID do fornecedor e CNPJ são obrigatórios" });
       }
 
-      // Verificar se o fornecedor existe
+      // Verificar se o fornecedor existe (comentado - cadastro na tabela simplefcfo)
       const checkQuery = "SELECT id, nome, cnpj FROM simplefcfo WHERE id = ?";
       const [existing] = await mysqlPool.execute(checkQuery, [fornecedorId]) as any;
       
@@ -1186,7 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fornecedor = existing[0];
 
       try {
-        // Fazer consulta ao webhook
+        // Fazer consulta ao webhook (comentado - webhook https://webhook-n8n.simpleit.app.br/webhook/3f78d932-bba2-426b-995c-42dedea1c8ef)
         const webhookUrl = `https://webhook-n8n.simpleit.app.br/webhook/3f78d932-bba2-426b-995c-42dedea1c8ef?cnpj=${encodeURIComponent(cnpj)}`;
         
         console.log(`Consultando webhook para CNPJ: ${cnpj}`);
@@ -1219,7 +1222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Verificar se retornou CODCFO
           if (webhookData && webhookData.CODCFO) {
-            // Fornecedor cadastrado no ERP - excluir da tabela
+            // Fornecedor cadastrado no ERP - excluir da tabela (comentado - operação na tabela simplefcfo)
             const deleteQuery = "DELETE FROM simplefcfo WHERE id = ?";
             await mysqlPool.execute(deleteQuery, [fornecedorId]);
             
@@ -1247,22 +1250,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (webhookError) {
         console.error("Erro ao consultar webhook:", webhookError);
-        try {
-        // Código principal aqui...
-      } catch (webhookError) {
-        console.error("Erro ao consultar webhook:", webhookError);
         // Se houver erro no webhook, assumir que não está cadastrado
         res.json({ 
           cadastrado: false, 
           message: "Erro ao consultar o ERP. Tente novamente." 
         });
       }
-      }
     } catch (error) {
       console.error("Erro ao verificar cadastro no ERP:", error);
       res.status(500).json({ message: "Erro ao verificar cadastro no ERP" });
     }
   });
+  */
 
   // Rota para download em lote de XMLs da NFe
   app.post('/api/nfe-bulk-download-xml', authenticateToken, async (req: any, res) => {
