@@ -674,7 +674,7 @@ export default function NFSeRecebidasPage() {
                             title="Selecionar todos"
                           />
                         </th>
-                        <th className="text-left py-3 px-2 w-32">
+                        <th className="text-left py-3 px-2 w-28">
                           <Button
                             variant="ghost"
                             onClick={() => handleSort("nfse_emitente")}
@@ -683,7 +683,7 @@ export default function NFSeRecebidasPage() {
                             Emitente {getSortIcon("nfse_emitente")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-24">
+                        <th className="text-left py-3 px-2 w-20">
                           <Button
                             variant="ghost"
                             onClick={() => handleSort("nfse_doc")}
@@ -692,7 +692,7 @@ export default function NFSeRecebidasPage() {
                             CNPJ {getSortIcon("nfse_doc")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-32">
+                        <th className="text-left py-3 px-2 w-28">
                           <Button
                             variant="ghost"
                             onClick={() => handleSort("nfse_tomador")}
@@ -701,7 +701,7 @@ export default function NFSeRecebidasPage() {
                             Tomador {getSortIcon("nfse_tomador")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-20">
+                        <th className="text-left py-3 px-2 w-16">
                           <Button
                             variant="ghost"
                             onClick={() => handleSort("nfse_tipo")}
@@ -710,7 +710,7 @@ export default function NFSeRecebidasPage() {
                             Tipo {getSortIcon("nfse_tipo")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-24">
+                        <th className="text-left py-3 px-2 w-20">
                           <Button
                             variant="ghost"
                             onClick={() => handleSort("nfse_data_hora")}
@@ -719,7 +719,16 @@ export default function NFSeRecebidasPage() {
                             Data {getSortIcon("nfse_data_hora")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-24">
+                        <th className="text-left py-3 px-2 w-18">
+                          <Button
+                            variant="ghost"
+                            onClick={() => handleSort("nfse_nsu")}
+                            className="text-gray-300 hover:text-white p-0 h-auto font-semibold text-xs"
+                          >
+                            NSU {getSortIcon("nfse_nsu")}
+                          </Button>
+                        </th>
+                        <th className="text-left py-3 px-2 w-20">
                           <Button
                             variant="ghost"
                             onClick={() => handleSort("nfse_valor_servico")}
@@ -728,7 +737,7 @@ export default function NFSeRecebidasPage() {
                             Valor {getSortIcon("nfse_valor_servico")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-24">
+                        <th className="text-left py-3 px-2 w-20">
                           <Button
                             variant="ghost"
                             onClick={() => handleSort("nfse_status_integracao")}
@@ -737,7 +746,7 @@ export default function NFSeRecebidasPage() {
                             Status {getSortIcon("nfse_status_integracao")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-28">
+                        <th className="text-left py-3 px-2 w-24">
                           <span className="text-gray-300 font-semibold text-xs">Ações</span>
                         </th>
                       </tr>
@@ -771,6 +780,9 @@ export default function NFSeRecebidasPage() {
                           </td>
                           <td className="py-2 px-2 text-gray-300 text-sm">
                             {formatDate(nfse.nfse_data_hora)}
+                          </td>
+                          <td className="py-2 px-2 text-gray-300 font-mono text-sm">
+                            {nfse.nfse_nsu || '-'}
                           </td>
                           <td className="py-2 px-2 text-gray-300 font-mono text-sm">
                             {formatCurrency(nfse.nfse_valor_servico)}

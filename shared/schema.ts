@@ -135,6 +135,7 @@ export interface NFSeRecebida {
   nfse_status_integracao: number;
   nfse_id_integracao: string | null;
   nfse_codcfo: string | null;
+  nfse_nsu: string | null;
 }
 
 export interface NFSeFilters {

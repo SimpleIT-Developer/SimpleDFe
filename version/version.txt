@@ -23,7 +23,7 @@ Descrição: Exportação do relatório de resumo de NFe e NFSe em Excel.
 Data: 04/07/2025
 Ticket: #
 Tipo: Melhoria
-Descrição: Na tela de NFe o campo Empresa agora reflete exatament a Empresa da Nota Fiscal.
+Descrição: Na tela de NFe o campo Empresa agora reflete exatamente a Empresa da Nota Fiscal.
 
 Data: 04/07/2025
 Ticket: #
@@ -34,3 +34,8 @@ Data: 04/07/2025
 Ticket: #
 Tipo: Melhoria
 Descrição: Na tela de NFe foi incluído o botao de VERIFICAR EVENTOS DA NFe.
+
+Data: 14/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: Na tela de NFSe foi incluída a coluna Número da NFSE.
