@@ -125,12 +125,14 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
-- July 7, 2025: Adicionada coluna NSU na tela de NFSe
+- July 7, 2025: Redesign da grid NFSe com otimizações de layout
   - Incluído campo nfse_nsu na consulta SQL da API /api/nfse-recebidas
   - Atualizada interface NFSeRecebida no schema para incluir nfse_nsu
-  - Adicionada coluna NSU na grid da tela de NFSe entre Data e Valor
-  - Ajustadas larguras das colunas para melhor acomodação
-  - Coluna NSU permite ordenação e exibe "-" quando valor é nulo
+  - Removida coluna TIPO da grid para economizar espaço
+  - Movida coluna NSU para primeira posição e renomeada para "Número"
+  - Ajustadas larguras das colunas para evitar sobreposição de campos
+  - Adicionado overflow horizontal para melhor responsividade
+  - Coluna Número permite ordenação e exibe "-" quando valor é nulo
 - July 7, 2025: Reativação da consulta de fornecedores (apenas busca)
   - Reativada API /api/fornecedores para buscar dados da tabela simplefcfo
   - Reativada consulta no dashboard para estatísticas corretas de fornecedores
