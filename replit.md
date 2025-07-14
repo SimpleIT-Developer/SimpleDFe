@@ -125,6 +125,10 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
+- July 7, 2025: Adicionado botão "Abrir Ticket" na tela de usuários
+  - Novo botão após "Ver Atualizações" que direciona para portal de suporte
+  - Abre em nova aba: https://simpleitsolucoes.atlassian.net/servicedesk/customer/portal/8/user/login?destination=portal%2F8
+  - Design com cor laranja e ícone ExternalLink para indicar link externo
 - July 7, 2025: Redesign da grid NFSe com otimizações de layout
   - Incluído campo nfse_nsu na consulta SQL da API /api/nfse-recebidas
   - Atualizada interface NFSeRecebida no schema para incluir nfse_nsu

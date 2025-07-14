@@ -39,3 +39,8 @@ Data: 14/07/2025
 Ticket: #
 Tipo: Melhoria
 Descrição: Na tela de NFSe foi incluída a coluna Número da NFSE.
+
+Data: 14/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: No menu usuários foi adicionado um botão que será utilizado para abertura de chamado.

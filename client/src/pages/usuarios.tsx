@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Plus, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Bell } from "lucide-react";
+import { Edit, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Plus, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Bell, ExternalLink } from "lucide-react";
 import { VersionNotificationDialog } from "@/components/VersionNotificationDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -331,6 +331,15 @@ export default function UsuariosPage() {
             >
               <Bell className="w-4 h-4 mr-2" />
               Ver Atualizações
+            </Button>
+            
+            <Button
+              onClick={() => window.open('https://simpleitsolucoes.atlassian.net/servicedesk/customer/portal/8/user/login?destination=portal%2F8', '_blank')}
+              variant="outline"
+              className="border-orange-500/30 text-orange-400 hover:bg-orange-500/20"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Abrir Ticket
             </Button>
             
             <Button
