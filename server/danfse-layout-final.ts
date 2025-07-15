@@ -675,6 +675,16 @@ function obterNomeMunicipio(codigo: string): string {
 function criarDANFSeLayoutFinal(data: DANFSeLayoutFinalData): jsPDF {
   const doc = new jsPDF('p', 'mm', 'a4');
   
+  // Debug: Log dos dados recebidos para verificar se estão corretos
+  console.log('=== DADOS PARA GERAÇÃO DO PDF ===');
+  console.log('Número NFSe:', data.numeroNfse);
+  console.log('Prestador:', data.prestador.razaoSocial, '- CNPJ:', data.prestador.cnpj);
+  console.log('Tomador:', data.tomador.razaoSocial, '- CNPJ:', data.tomador.cnpj);
+  console.log('Valor Serviços:', data.valorServicos);
+  console.log('Valor Total:', data.valorTotalNota);
+  console.log('Valor ISS:', data.valorIss);
+  console.log('Descrição:', data.descricaoServicos);
+  
   const largura = 210;
   const altura = 297;
   const margem = 10;
@@ -748,56 +758,59 @@ function criarDANFSeLayoutFinal(data: DANFSeLayoutFinalData): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.text('CPF/CNPJ:', margem + 8, y + 9);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.prestador.cnpj, margem + 28, y + 9);
+  doc.text(data.prestador.cnpj || 'N/A', margem + 28, y + 9);
   
   doc.setFont('helvetica', 'bold');
   doc.text('Inscrição Municipal:', margem + 110, y + 9);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.prestador.inscricaoMunicipal, margem + 155, y + 9);
+  doc.text(data.prestador.inscricaoMunicipal || 'N/A', margem + 155, y + 9);
   
   // Segunda linha
   doc.setFont('helvetica', 'bold');
   doc.text('Razão Social:', margem + 8, y + 14);
   doc.setFont('helvetica', 'normal');
-  const razaoLimitada = data.prestador.razaoSocial.length > 70 ? 
-    data.prestador.razaoSocial.substring(0, 70) + '...' : 
-    data.prestador.razaoSocial;
+  const razaoSocial = data.prestador.razaoSocial || 'N/A';
+  const razaoLimitada = razaoSocial.length > 70 ? 
+    razaoSocial.substring(0, 70) + '...' : 
+    razaoSocial;
   doc.text(razaoLimitada, margem + 33, y + 14);
   
   // Terceira linha
   doc.setFont('helvetica', 'bold');
   doc.text('Endereço:', margem + 8, y + 19);
   doc.setFont('helvetica', 'normal');
-  const enderecoCompleto = `${data.prestador.endereco}, ${data.prestador.numero}`;
+  const endereco = data.prestador.endereco || '';
+  const numero = data.prestador.numero || '';
+  const enderecoCompleto = endereco && numero ? `${endereco}, ${numero}` : endereco || numero || 'N/A';
   doc.text(enderecoCompleto, margem + 26, y + 19);
   
   // Quarta linha
   doc.setFont('helvetica', 'bold');
   doc.text('CEP:', margem + 8, y + 24);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.prestador.cep, margem + 18, y + 24);
+  doc.text(data.prestador.cep || 'N/A', margem + 18, y + 24);
   
   doc.setFont('helvetica', 'bold');
   doc.text('Bairro:', margem + 45, y + 24);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.prestador.bairro, margem + 58, y + 24);
+  doc.text(data.prestador.bairro || 'N/A', margem + 58, y + 24);
   
   // Quinta linha
   doc.setFont('helvetica', 'bold');
   doc.text('Município:', margem + 8, y + 29);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.prestador.municipio, margem + 26, y + 29);
+  doc.text(data.prestador.municipio || 'N/A', margem + 26, y + 29);
   
   doc.setFont('helvetica', 'bold');
   doc.text('Estado:', margem + 120, y + 29);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.prestador.uf, margem + 135, y + 29);
+  doc.text(data.prestador.uf || 'N/A', margem + 135, y + 29);
   
   // Sexta linha
   doc.setFont('helvetica', 'bold');
   doc.text('E-mail:', margem + 8, y + 34);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.prestador.email, margem + 22, y + 34);
+  doc.text(data.prestador.email || 'N/A', margem + 22, y + 34);
   
   y += prestadorHeight;
   
@@ -817,7 +830,7 @@ function criarDANFSeLayoutFinal(data: DANFSeLayoutFinalData): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.text('CPF/CNPJ:', margem + 8, y + 9);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.tomador.cnpj, margem + 28, y + 9);
+  doc.text(data.tomador.cnpj || 'N/A', margem + 28, y + 9);
   
   if (data.tomador.inscricaoMunicipal) {
     doc.setFont('helvetica', 'bold');
@@ -830,30 +843,33 @@ function criarDANFSeLayoutFinal(data: DANFSeLayoutFinalData): jsPDF {
   doc.setFont('helvetica', 'bold');
   doc.text('Razão Social:', margem + 8, y + 14);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.tomador.razaoSocial, margem + 33, y + 14);
+  doc.text(data.tomador.razaoSocial || 'N/A', margem + 33, y + 14);
   
   // Terceira linha
   doc.setFont('helvetica', 'bold');
   doc.text('Endereço:', margem + 8, y + 19);
   doc.setFont('helvetica', 'normal');
-  const enderecoTomador = `${data.tomador.endereco}, ${data.tomador.numero} - ${data.tomador.bairro}`.replace(/, -/, ' -');
+  const enderecoTom = data.tomador.endereco || '';
+  const numeroTom = data.tomador.numero || '';
+  const bairroTom = data.tomador.bairro || '';
+  const enderecoTomador = `${enderecoTom}${numeroTom ? ', ' + numeroTom : ''}${bairroTom ? ' - ' + bairroTom : ''}` || 'N/A';
   doc.text(enderecoTomador, margem + 26, y + 19);
   
   // Quarta linha
   doc.setFont('helvetica', 'bold');
   doc.text('CEP:', margem + 8, y + 24);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.tomador.cep, margem + 18, y + 24);
+  doc.text(data.tomador.cep || 'N/A', margem + 18, y + 24);
   
   doc.setFont('helvetica', 'bold');
   doc.text('Município:', margem + 45, y + 24);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.tomador.municipio, margem + 65, y + 24);
+  doc.text(data.tomador.municipio || 'N/A', margem + 65, y + 24);
   
   doc.setFont('helvetica', 'bold');
   doc.text('Estado:', margem + 140, y + 24);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.tomador.uf, margem + 155, y + 24);
+  doc.text(data.tomador.uf || 'N/A', margem + 155, y + 24);
   
   y += tomadorHeight;
   
@@ -869,7 +885,9 @@ function criarDANFSeLayoutFinal(data: DANFSeLayoutFinalData): jsPDF {
   doc.setFontSize(6);
   doc.setFont('helvetica', 'normal');
   
-  const textoCompleto = `${data.codigoServico} - ${data.descricaoServicos}`;
+  const codigoServ = data.codigoServico || '';
+  const descricaoServ = data.descricaoServicos || 'Descrição não informada';
+  const textoCompleto = codigoServ ? `${codigoServ} - ${descricaoServ}` : descricaoServ;
   const linhasDescricao = doc.splitTextToSize(textoCompleto, larguraConteudo - 20);
   const linhasLimitadas = linhasDescricao.slice(0, 7);
   
