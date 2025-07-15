@@ -148,6 +148,36 @@ function buscarINSS(obj: any): number {
   return buscarTributo(obj, 'vRetINSS') || buscarTributo(obj, 'vINSS') || buscarTributo(obj, 'inss') || buscarTributo(obj, 'INSS');
 }
 
+// Função para detectar estrutura específica de Barueri/Belo Horizonte
+function detectarEstruturaBelo(parsed: any): boolean {
+  // Detecta se é estrutura de Belo Horizonte ou similar
+  return parsed.NFSe && 
+         parsed.NFSe.infNFSe && 
+         parsed.NFSe.infNFSe.xLocEmi && 
+         (parsed.NFSe.infNFSe.xLocEmi.includes('BELO') || 
+          parsed.NFSe.infNFSe.xLocEmi.includes('HORIZONTE') ||
+          parsed.NFSe.infNFSe.xLocEmi.includes('BARUERI'));
+}
+
+// Função para detectar estrutura específica de Barueri
+function detectarEstruturaBarueri(parsed: any): boolean {
+  // Verifica se tem estrutura diferente que pode ser específica de Barueri
+  return parsed.NFSe && 
+         parsed.NFSe.infNFSe && 
+         (!parsed.NFSe.infNFSe.DPS || 
+          (parsed.NFSe.infNFSe.emit && parsed.NFSe.infNFSe.valores)) &&
+         (parsed.NFSe.infNFSe.xLocEmi?.includes('BARUERI') || 
+          parsed.NFSe.infNFSe.nNFSe);
+}
+
+// Função para detectar estrutura específica de São Paulo
+function detectarEstruturaSaoPaulo(parsed: any): boolean {
+  return parsed.NFSe && 
+         parsed.NFSe.infNFSe && 
+         parsed.NFSe.infNFSe.DPS && 
+         !detectarEstruturaBelo(parsed);
+}
+
 async function extrairDadosLayoutFinal(xmlContent: string): Promise<DANFSeLayoutFinalData> {
   try {
     let cleanXml = xmlContent.trim();
@@ -161,26 +191,163 @@ async function extrairDadosLayoutFinal(xmlContent: string): Promise<DANFSeLayout
     
     const parsed = await parseStringPromise(cleanXml, { explicitArray: false });
     
-    console.log('Procurando valor ISS e valor dos serviços em:');
-    const valores = parsed.NFSe?.infNFSe?.DPS?.infDPS?.valores || parsed.NFSe?.infNFSe?.valores || {};
-    console.log('valores.vISSQN:', valores.vISSQN);
-    console.log('valores.vISS:', valores.vISS);
-    console.log('valores.vServ:', valores.vServ);
-    
-    const serv = parsed.NFSe?.infNFSe?.DPS?.infDPS?.serv || {};
-    console.log('serv.vISSQN:', serv.vISSQN);
-    console.log('serv.vServ:', serv.vServ);
-    
-    const infNFSe = parsed.NFSe?.infNFSe || {};
-    console.log('infNFSe.vISSQN:', infNFSe.vISSQN);
-    
-    console.log('parsed.NFSe.vISSQN:', parsed.NFSe?.vISSQN);
+    console.log('Analisando estrutura XML...');
+    console.log('Estrutura detectada - Belo Horizonte:', detectarEstruturaBelo(parsed));
+    console.log('Estrutura detectada - Barueri:', detectarEstruturaBarueri(parsed));
+    console.log('Estrutura detectada - São Paulo:', detectarEstruturaSaoPaulo(parsed));
     
     const valorIssEncontrado = buscarVISSQN(parsed);
     const valorServEncontrado = buscarVServ(parsed);
     
-    // Estrutura NFSe padrão
-    if (parsed.NFSe && parsed.NFSe.infNFSe) {
+    // Estrutura específica de Barueri (prioridade alta)
+    if (detectarEstruturaBarueri(parsed)) {
+      console.log('Processando XML de Barueri/estrutura alternativa');
+      const infNFSe = parsed.NFSe.infNFSe;
+      const emit = infNFSe.emit || {};
+      const enderNac = emit.enderNac || {};
+      const dps = infNFSe.DPS?.infDPS || {};
+      const prest = dps.prest || {};
+      const prestEnd = prest.end || {};
+      const prestEndNac = prestEnd.endNac || {};
+      const toma = dps.toma || {};
+      const tomaEnd = toma.end || {};
+      const tomaEndNac = tomaEnd.endNac || {};
+      const serv = dps.serv || {};
+      const cServ = serv.cServ || {};
+      const valores = dps.valores || infNFSe.valores || {};
+      
+      return {
+        numeroNfse: infNFSe.nNFSe || infNFSe.nDFSe || '',
+        dataEmissao: dps.dhEmi || infNFSe.dhEmi || infNFSe.dhProc || '',
+        codigoVerificacao: infNFSe.cVerif || '',
+        
+        prestador: {
+          cnpj: formatarCNPJ(emit.CNPJ || prest.CNPJ || ''),
+          razaoSocial: emit.xNome || prest.xNome || '',
+          endereco: enderNac.xLgr || prestEnd.xLgr || '',
+          numero: enderNac.nro || prestEnd.nro || '',
+          complemento: enderNac.xCpl || prestEnd.xCpl || '',
+          bairro: enderNac.xBairro || prestEnd.xBairro || '',
+          cep: formatarCEP(enderNac.CEP || prestEndNac.CEP || ''),
+          municipio: obterNomeMunicipio(enderNac.cMun || prestEndNac.cMun || '') || infNFSe.xLocEmi || '',
+          uf: enderNac.UF || prestEndNac.UF || '',
+          inscricaoMunicipal: emit.IM || prest.IM || '',
+          inscricaoEstadual: '',
+          telefone: emit.fone || '',
+          email: emit.email || ''
+        },
+        
+        tomador: {
+          cnpj: formatarCNPJ(toma.CNPJ || ''),
+          razaoSocial: toma.xNome || '',
+          endereco: tomaEnd.xLgr || '',
+          numero: tomaEnd.nro || '',
+          bairro: tomaEnd.xBairro || '',
+          cep: formatarCEP(tomaEndNac.CEP || ''),
+          municipio: obterNomeMunicipio(tomaEndNac.cMun || '') || infNFSe.xLocPrestacao || '',
+          uf: tomaEndNac.UF || '',
+          inscricaoMunicipal: toma.IM || '',
+          inscricaoEstadual: ''
+        },
+        
+        descricaoServicos: cServ.xDescServ || infNFSe.xTribNac || infNFSe.xTribMun || '',
+        observacoes: valores.xOutInf || infNFSe.xOutInf || '',
+        
+        codigoServico: cServ.cTribNac || '',
+        valorServicos: parseFloat(valorServEncontrado || valores.vServPrest?.vServ || valores.vServ || valores.vBC || '0'),
+        valorDeducoes: 0,
+        baseCalculo: parseFloat(valores.vBC || valorServEncontrado || valores.vServ || '0'),
+        aliquota: parseFloat(valores.pAliqAplic || '0'),
+        valorIss: parseFloat(valorIssEncontrado || valores.vISSQN || '0'),
+        issRetido: valores.tpRetISSQN === '1',
+        valorTotalNota: parseFloat(valores.vLiq || valorServEncontrado || valores.vServ || valores.vBC || '0'),
+        
+        pis: buscarPIS(parsed),
+        cofins: buscarCOFINS(parsed),
+        inss: buscarINSS(parsed),
+        ir: buscarIR(parsed),
+        csll: buscarCSLL(parsed),
+        
+        outrasInformacoes: valores.xOutInf || infNFSe.xOutInf || ''
+      };
+    }
+    
+    // Estrutura específica de Belo Horizonte
+    else if (detectarEstruturaBelo(parsed)) {
+      console.log('Processando XML de Belo Horizonte');
+      const infNFSe = parsed.NFSe.infNFSe;
+      const emit = infNFSe.emit || {};
+      const enderNac = emit.enderNac || {};
+      const dps = infNFSe.DPS?.infDPS || {};
+      const prest = dps.prest || {};
+      const prestEnd = prest.end || {};
+      const prestEndNac = prestEnd.endNac || {};
+      const toma = dps.toma || {};
+      const tomaEnd = toma.end || {};
+      const tomaEndNac = tomaEnd.endNac || {};
+      const serv = dps.serv || {};
+      const cServ = serv.cServ || {};
+      const valores = dps.valores || infNFSe.valores || {};
+      
+      return {
+        numeroNfse: infNFSe.nNFSe || '',
+        dataEmissao: dps.dhEmi || infNFSe.dhEmi || '',
+        codigoVerificacao: infNFSe.cVerif || '',
+        
+        prestador: {
+          cnpj: formatarCNPJ(emit.CNPJ || prest.CNPJ || ''),
+          razaoSocial: emit.xNome || prest.xNome || '',
+          endereco: enderNac.xLgr || prestEnd.xLgr || '',
+          numero: enderNac.nro || prestEnd.nro || '',
+          complemento: enderNac.xCpl || prestEnd.xCpl || '',
+          bairro: enderNac.xBairro || prestEnd.xBairro || '',
+          cep: formatarCEP(enderNac.CEP || prestEndNac.CEP || ''),
+          municipio: obterNomeMunicipio(enderNac.cMun || prestEndNac.cMun || ''),
+          uf: enderNac.UF || prestEndNac.UF || '',
+          inscricaoMunicipal: emit.IM || prest.IM || '',
+          inscricaoEstadual: '',
+          telefone: emit.fone || '',
+          email: emit.email || ''
+        },
+        
+        tomador: {
+          cnpj: formatarCNPJ(toma.CNPJ || ''),
+          razaoSocial: toma.xNome || '',
+          endereco: tomaEnd.xLgr || '',
+          numero: tomaEnd.nro || '',
+          bairro: tomaEnd.xBairro || '',
+          cep: formatarCEP(tomaEndNac.CEP || ''),
+          municipio: obterNomeMunicipio(tomaEndNac.cMun || ''),
+          uf: tomaEndNac.UF || '',
+          inscricaoMunicipal: toma.IM || '',
+          inscricaoEstadual: ''
+        },
+        
+        descricaoServicos: cServ.xDescServ || infNFSe.xTribNac || '',
+        observacoes: valores.xOutInf || infNFSe.xOutInf || '',
+        
+        codigoServico: cServ.cTribNac || '',
+        valorServicos: parseFloat(valorServEncontrado || valores.vServPrest?.vServ || valores.vServ || '0'),
+        valorDeducoes: 0,
+        baseCalculo: parseFloat(valores.vBC || valorServEncontrado || valores.vServ || '0'),
+        aliquota: parseFloat(valores.pAliqAplic || '0'),
+        valorIss: parseFloat(valorIssEncontrado || valores.vISSQN || '0'),
+        issRetido: valores.tpRetISSQN === '1',
+        valorTotalNota: parseFloat(valores.vLiq || valorServEncontrado || valores.vServ || '0'),
+        
+        pis: buscarPIS(parsed),
+        cofins: buscarCOFINS(parsed),
+        inss: buscarINSS(parsed),
+        ir: buscarIR(parsed),
+        csll: buscarCSLL(parsed),
+        
+        outrasInformacoes: valores.xOutInf || infNFSe.xOutInf || ''
+      };
+    }
+    
+    // Estrutura NFSe padrão São Paulo
+    else if (detectarEstruturaSaoPaulo(parsed)) {
+      console.log('Processando XML de São Paulo');
       const infNFSe = parsed.NFSe.infNFSe;
       const emit = infNFSe.emit || {};
       const enderNac = emit.enderNac || {};
@@ -250,6 +417,7 @@ async function extrairDadosLayoutFinal(xmlContent: string): Promise<DANFSeLayout
     
     // Estrutura NFe simplificada
     else if (parsed.NFe) {
+      console.log('Processando NFe simplificada');
       const nfe = parsed.NFe;
       const chaveNFe = nfe.ChaveNFe || {};
       const enderecoPrestador = nfe.EnderecoPrestador || {};
@@ -311,7 +479,79 @@ async function extrairDadosLayoutFinal(xmlContent: string): Promise<DANFSeLayout
       };
     }
     
-    throw new Error('Estrutura XML não reconhecida');
+    // Log detalhado da estrutura para debugging
+    console.log('Estrutura XML completa (primeiros 2 níveis):');
+    console.log('parsed:', Object.keys(parsed));
+    if (parsed.NFSe) {
+      console.log('NFSe:', Object.keys(parsed.NFSe));
+      if (parsed.NFSe.infNFSe) {
+        console.log('infNFSe:', Object.keys(parsed.NFSe.infNFSe));
+      }
+    }
+    
+    // Tentar processamento genérico como último recurso
+    console.log('Tentando processamento genérico como fallback...');
+    if (parsed.NFSe && parsed.NFSe.infNFSe) {
+      const infNFSe = parsed.NFSe.infNFSe;
+      
+      // Estrutura genérica - tenta mapear qualquer NFSe
+      return {
+        numeroNfse: infNFSe.nNFSe || infNFSe.nDFSe || '',
+        dataEmissao: infNFSe.dhEmi || infNFSe.dhProc || '',
+        codigoVerificacao: infNFSe.cVerif || '',
+        
+        prestador: {
+          cnpj: formatarCNPJ(infNFSe.emit?.CNPJ || ''),
+          razaoSocial: infNFSe.emit?.xNome || '',
+          endereco: infNFSe.emit?.enderNac?.xLgr || '',
+          numero: infNFSe.emit?.enderNac?.nro || '',
+          complemento: infNFSe.emit?.enderNac?.xCpl || '',
+          bairro: infNFSe.emit?.enderNac?.xBairro || '',
+          cep: formatarCEP(infNFSe.emit?.enderNac?.CEP || ''),
+          municipio: obterNomeMunicipio(infNFSe.emit?.enderNac?.cMun || '') || infNFSe.xLocEmi || '',
+          uf: infNFSe.emit?.enderNac?.UF || '',
+          inscricaoMunicipal: infNFSe.emit?.IM || '',
+          inscricaoEstadual: '',
+          telefone: infNFSe.emit?.fone || '',
+          email: infNFSe.emit?.email || ''
+        },
+        
+        tomador: {
+          cnpj: formatarCNPJ(infNFSe.DPS?.infDPS?.toma?.CNPJ || ''),
+          razaoSocial: infNFSe.DPS?.infDPS?.toma?.xNome || '',
+          endereco: infNFSe.DPS?.infDPS?.toma?.end?.xLgr || '',
+          numero: infNFSe.DPS?.infDPS?.toma?.end?.nro || '',
+          bairro: infNFSe.DPS?.infDPS?.toma?.end?.xBairro || '',
+          cep: formatarCEP(infNFSe.DPS?.infDPS?.toma?.end?.endNac?.CEP || ''),
+          municipio: obterNomeMunicipio(infNFSe.DPS?.infDPS?.toma?.end?.endNac?.cMun || '') || infNFSe.xLocPrestacao || '',
+          uf: infNFSe.DPS?.infDPS?.toma?.end?.endNac?.UF || '',
+          inscricaoMunicipal: infNFSe.DPS?.infDPS?.toma?.IM || '',
+          inscricaoEstadual: ''
+        },
+        
+        descricaoServicos: infNFSe.DPS?.infDPS?.serv?.cServ?.xDescServ || infNFSe.xTribNac || infNFSe.xTribMun || '',
+        observacoes: infNFSe.valores?.xOutInf || infNFSe.xOutInf || '',
+        
+        codigoServico: infNFSe.DPS?.infDPS?.serv?.cServ?.cTribNac || '',
+        valorServicos: parseFloat(valorServEncontrado || infNFSe.valores?.vServPrest?.vServ || infNFSe.valores?.vServ || infNFSe.valores?.vBC || '0'),
+        valorDeducoes: 0,
+        baseCalculo: parseFloat(infNFSe.valores?.vBC || valorServEncontrado || infNFSe.valores?.vServ || '0'),
+        aliquota: parseFloat(infNFSe.valores?.pAliqAplic || '0'),
+        valorIss: parseFloat(valorIssEncontrado || infNFSe.valores?.vISSQN || '0'),
+        issRetido: infNFSe.valores?.tpRetISSQN === '1',
+        valorTotalNota: parseFloat(infNFSe.valores?.vLiq || valorServEncontrado || infNFSe.valores?.vServ || infNFSe.valores?.vBC || '0'),
+        
+        pis: buscarPIS(parsed),
+        cofins: buscarCOFINS(parsed),
+        inss: buscarINSS(parsed),
+        ir: buscarIR(parsed),
+        csll: buscarCSLL(parsed),
+        
+        outrasInformacoes: infNFSe.valores?.xOutInf || infNFSe.xOutInf || ''
+      };
+    }
+    
+    throw new Error('Estrutura XML não reconhecida - não é possível processar este formato de NFSe');
     
   } catch (error) {
     console.error('Erro ao processar XML final:', error);
