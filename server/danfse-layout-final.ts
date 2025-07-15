@@ -488,6 +488,77 @@ async function extrairDadosLayoutFinal(xmlContent: string): Promise<DANFSeLayout
         console.log('infNFSe:', Object.keys(parsed.NFSe.infNFSe));
       }
     }
+    if (parsed.root) {
+      console.log('root:', Object.keys(parsed.root));
+      if (parsed.root.Nfe) {
+        console.log('Nfe:', Object.keys(parsed.root.Nfe));
+      }
+    }
+    
+    // Estrutura específica para XML com root/Nfe (comum em Barueri)
+    if (parsed.root && parsed.root.Nfe) {
+      console.log('Processando XML com estrutura root/Nfe (Barueri)');
+      const nfe = parsed.root.Nfe;
+      const infNFe = nfe.InfNFe || nfe.infNFe || {};
+      
+      // Log da estrutura interna
+      console.log('Estrutura InfNFe:', Object.keys(infNFe));
+      
+      return {
+        numeroNfse: infNFe.NumeroNfe || infNFe.numeroNfe || '',
+        dataEmissao: infNFe.DataEmissaoNFe || infNFe.dataEmissaoNFe || '',
+        codigoVerificacao: infNFe.CodigoVerificacao || infNFe.codigoVerificacao || '',
+        
+        prestador: {
+          cnpj: formatarCNPJ(infNFe.CPFCNPJPrestador?.CNPJ || infNFe.cpfCnpjPrestador?.cnpj || ''),
+          razaoSocial: infNFe.RazaoSocialPrestador || infNFe.razaoSocialPrestador || '',
+          endereco: infNFe.EnderecoPrestador?.Logradouro || infNFe.enderecoPrestador?.logradouro || '',
+          numero: infNFe.EnderecoPrestador?.NumeroEndereco || infNFe.enderecoPrestador?.numeroEndereco || '',
+          complemento: infNFe.EnderecoPrestador?.ComplementoEndereco || infNFe.enderecoPrestador?.complementoEndereco || '',
+          bairro: infNFe.EnderecoPrestador?.Bairro || infNFe.enderecoPrestador?.bairro || '',
+          cep: formatarCEP(infNFe.EnderecoPrestador?.CEP || infNFe.enderecoPrestador?.cep || ''),
+          municipio: infNFe.EnderecoPrestador?.Cidade || infNFe.enderecoPrestador?.cidade || '',
+          uf: infNFe.EnderecoPrestador?.UF || infNFe.enderecoPrestador?.uf || '',
+          inscricaoMunicipal: infNFe.InscricaoPrestador || infNFe.inscricaoPrestador || '',
+          inscricaoEstadual: '',
+          telefone: '',
+          email: infNFe.EmailPrestador || infNFe.emailPrestador || ''
+        },
+        
+        tomador: {
+          cnpj: formatarCNPJ(infNFe.CPFCNPJTomador?.CNPJ || infNFe.cpfCnpjTomador?.cnpj || ''),
+          razaoSocial: infNFe.RazaoSocialTomador || infNFe.razaoSocialTomador || '',
+          endereco: infNFe.EnderecoTomador?.Logradouro || infNFe.enderecoTomador?.logradouro || '',
+          numero: infNFe.EnderecoTomador?.NumeroEndereco || infNFe.enderecoTomador?.numeroEndereco || '',
+          bairro: infNFe.EnderecoTomador?.Bairro || infNFe.enderecoTomador?.bairro || '',
+          cep: formatarCEP(infNFe.EnderecoTomador?.CEP || infNFe.enderecoTomador?.cep || ''),
+          municipio: infNFe.EnderecoTomador?.Cidade || infNFe.enderecoTomador?.cidade || '',
+          uf: infNFe.EnderecoTomador?.UF || infNFe.enderecoTomador?.uf || '',
+          inscricaoMunicipal: '',
+          inscricaoEstadual: infNFe.InscricaoEstadualTomador || infNFe.inscricaoEstadualTomador || ''
+        },
+        
+        descricaoServicos: infNFe.Discriminacao || infNFe.discriminacao || '',
+        observacoes: infNFe.Observacoes || infNFe.observacoes || '',
+        
+        codigoServico: infNFe.CodigoServico || infNFe.codigoServico || '',
+        valorServicos: parseFloat(infNFe.ValorServicos || infNFe.valorServicos || '0'),
+        valorDeducoes: parseFloat(infNFe.ValorDeducoes || infNFe.valorDeducoes || '0'),
+        baseCalculo: parseFloat(infNFe.BaseCalculo || infNFe.baseCalculo || infNFe.ValorServicos || infNFe.valorServicos || '0'),
+        aliquota: parseFloat(infNFe.AliquotaServicos || infNFe.aliquotaServicos || '0'),
+        valorIss: parseFloat(infNFe.ValorISS || infNFe.valorIss || '0'),
+        issRetido: (infNFe.ISSRetido || infNFe.issRetido) === 'true',
+        valorTotalNota: parseFloat(infNFe.ValorTotalNota || infNFe.valorTotalNota || infNFe.ValorServicos || infNFe.valorServicos || '0'),
+        
+        pis: parseFloat(infNFe.ValorPIS || infNFe.valorPis || '0'),
+        cofins: parseFloat(infNFe.ValorCOFINS || infNFe.valorCofins || '0'),
+        inss: parseFloat(infNFe.ValorINSS || infNFe.valorInss || '0'),
+        ir: parseFloat(infNFe.ValorIR || infNFe.valorIr || '0'),
+        csll: parseFloat(infNFe.ValorCSLL || infNFe.valorCsll || '0'),
+        
+        outrasInformacoes: infNFe.OutrasInformacoes || infNFe.outrasInformacoes || infNFe.Discriminacao || infNFe.discriminacao || ''
+      };
+    }
     
     // Tentar processamento genérico como último recurso
     console.log('Tentando processamento genérico como fallback...');
