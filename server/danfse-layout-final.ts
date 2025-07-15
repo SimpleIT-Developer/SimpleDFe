@@ -515,65 +515,68 @@ async function extrairDadosLayoutFinal(xmlContent: string): Promise<DANFSeLayout
         console.log('ValoresNfe:', Object.keys(infNFe.ValoresNfe));
       }
       
-      // Extração correta baseada na estrutura real de Barueri
-      const prestador = infNFe.PrestadorServico || {};
+      // Extração correta baseada na estrutura real de Barueri conforme XML anexado
+      const prestadorServico = infNFe.PrestadorServico || {};
       const declaracao = infNFe.DeclaracaoPrestacaoServico || {};
+      const infDeclaracao = declaracao.InfDeclaracaoPrestacaoServico || {};
       const valores = infNFe.ValoresNfe || {};
-      const tomador = declaracao.TomadorServico || {};
+      const tomador = infDeclaracao.TomadorServico || {};
+      const servico = infDeclaracao.Servico || {};
+      const valoresServico = servico.Valores || {};
       
       return {
         numeroNfse: infNFe.NumeroNfe || '',
-        dataEmissao: infNFe.DataEmissao || infNFe.DataEmissaoNfe || '',
+        dataEmissao: infNFe.DataEmissao || '',
         codigoVerificacao: infNFe.CodigoVerificacao || '',
         
         prestador: {
-          cnpj: formatarCNPJ(prestador.IdentificacaoPrestador?.CpfCnpj?.Cnpj || prestador.CpfCnpj?.Cnpj || ''),
-          razaoSocial: prestador.RazaoSocial || prestador.IdentificacaoPrestador?.RazaoSocial || '',
-          endereco: prestador.Endereco?.Endereco || prestador.Endereco?.Logradouro || '',
-          numero: prestador.Endereco?.Numero || '',
-          complemento: prestador.Endereco?.Complemento || '',
-          bairro: prestador.Endereco?.Bairro || '',
-          cep: formatarCEP(prestador.Endereco?.Cep || ''),
-          municipio: prestador.Endereco?.Cidade || prestador.Endereco?.xMun || '',
-          uf: prestador.Endereco?.Uf || prestador.Endereco?.UF || '',
-          inscricaoMunicipal: prestador.IdentificacaoPrestador?.InscricaoMunicipal || prestador.InscricaoMunicipal || '',
+          cnpj: formatarCNPJ(prestadorServico.IdentificacaoPrestador?.CpfCnpj?.Cnpj || ''),
+          razaoSocial: prestadorServico.RazaoSocial || '',
+          endereco: prestadorServico.Endereco?.Endereco || '',
+          numero: prestadorServico.Endereco?.NumeroEndereco || '',
+          complemento: prestadorServico.Endereco?.ComplementoEndereco || '',
+          bairro: prestadorServico.Endereco?.Bairro || '',
+          cep: formatarCEP(prestadorServico.Endereco?.Cep || ''),
+          municipio: prestadorServico.Endereco?.Cidade || '',
+          uf: prestadorServico.Endereco?.Uf || '',
+          inscricaoMunicipal: prestadorServico.IdentificacaoPrestador?.InscricaoMunicipal || '',
           inscricaoEstadual: '',
-          telefone: prestador.Contato?.Telefone || '',
-          email: prestador.Contato?.Email || ''
+          telefone: prestadorServico.Contato?.Telefone || '',
+          email: prestadorServico.Contato?.Email || ''
         },
         
         tomador: {
-          cnpj: formatarCNPJ(tomador.IdentificacaoTomador?.CpfCnpj?.Cnpj || tomador.CpfCnpj?.Cnpj || ''),
-          razaoSocial: tomador.RazaoSocial || tomador.IdentificacaoTomador?.RazaoSocial || '',
-          endereco: tomador.Endereco?.Endereco || tomador.Endereco?.Logradouro || '',
-          numero: tomador.Endereco?.Numero || '',
+          cnpj: formatarCNPJ(tomador.IdentificacaoTomador?.CpfCnpj?.Cnpj || ''),
+          razaoSocial: tomador.RazaoSocial || '',
+          endereco: tomador.Endereco?.Endereco || '',
+          numero: tomador.Endereco?.NumeroEndereco || '',
           bairro: tomador.Endereco?.Bairro || '',
           cep: formatarCEP(tomador.Endereco?.Cep || ''),
-          municipio: tomador.Endereco?.Cidade || tomador.Endereco?.xMun || '',
-          uf: tomador.Endereco?.Uf || tomador.Endereco?.UF || '',
+          municipio: tomador.Endereco?.Cidade || '',
+          uf: tomador.Endereco?.Uf || '',
           inscricaoMunicipal: tomador.IdentificacaoTomador?.InscricaoMunicipal || '',
           inscricaoEstadual: tomador.IdentificacaoTomador?.InscricaoEstadual || ''
         },
         
-        descricaoServicos: declaracao.Servico?.Discriminacao || valores.Discriminacao || '',
-        observacoes: valores.Observacoes || '',
+        descricaoServicos: servico.Discriminacao || '',
+        observacoes: '',
         
-        codigoServico: declaracao.Servico?.CodigoTributacaoMunicipio || declaracao.Servico?.ItemListaServico || '',
-        valorServicos: parseFloat(declaracao.Servico?.Valores?.ValorServicos || valores.ValorServicos || '0'),
-        valorDeducoes: parseFloat(declaracao.Servico?.Valores?.ValorDeducoes || valores.ValorDeducoes || '0'),
-        baseCalculo: parseFloat(declaracao.Servico?.Valores?.BaseCalculo || valores.BaseCalculo || declaracao.Servico?.Valores?.ValorServicos || '0'),
-        aliquota: parseFloat(declaracao.Servico?.Valores?.Aliquota || valores.Aliquota || '0'),
-        valorIss: parseFloat(declaracao.Servico?.Valores?.ValorIss || valores.ValorIss || '0'),
-        issRetido: (declaracao.Servico?.Valores?.IssRetido || valores.IssRetido) === '1' || (declaracao.Servico?.Valores?.IssRetido || valores.IssRetido) === 'true',
-        valorTotalNota: parseFloat(valores.ValorTotalRecebido || declaracao.Servico?.Valores?.ValorLiquidoNfse || declaracao.Servico?.Valores?.ValorServicos || '0'),
+        codigoServico: servico.CodigoServico || '',
+        valorServicos: parseFloat(valoresServico.ValorServicos || '0'),
+        valorDeducoes: parseFloat(valoresServico.ValorDeducoes || '0'),
+        baseCalculo: parseFloat(valores.BaseCalculo || valoresServico.ValorServicos || '0'),
+        aliquota: parseFloat(valores.Aliquota || valoresServico.Aliquota || '0'),
+        valorIss: parseFloat(valores.ValorIss || valoresServico.ValorIss || '0'),
+        issRetido: servico.IssRetido === '1',
+        valorTotalNota: parseFloat(valores.ValorLiquidoNfe || valoresServico.ValorServicos || '0'),
         
-        pis: parseFloat(declaracao.Servico?.Valores?.ValorPis || valores.ValorPis || '0'),
-        cofins: parseFloat(declaracao.Servico?.Valores?.ValorCofins || valores.ValorCofins || '0'),
-        inss: parseFloat(declaracao.Servico?.Valores?.ValorInss || valores.ValorInss || '0'),
-        ir: parseFloat(declaracao.Servico?.Valores?.ValorIr || valores.ValorIr || '0'),
-        csll: parseFloat(declaracao.Servico?.Valores?.ValorCsll || valores.ValorCsll || '0'),
+        pis: parseFloat(valoresServico.ValorPis || '0'),
+        cofins: parseFloat(valoresServico.ValorCofins || '0'),
+        inss: parseFloat(valoresServico.ValorInss || '0'),
+        ir: parseFloat(valoresServico.ValorIr || '0'),
+        csll: parseFloat(valoresServico.ValorCsll || '0'),
         
-        outrasInformacoes: valores.OutrasInformacoes || declaracao.Servico?.Discriminacao || ''
+        outrasInformacoes: servico.Discriminacao || ''
       };
     }
     
