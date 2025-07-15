@@ -504,59 +504,76 @@ async function extrairDadosLayoutFinal(xmlContent: string): Promise<DANFSeLayout
       // Log da estrutura interna
       console.log('Estrutura InfNFe:', Object.keys(infNFe));
       
+      // Log detalhado das subseções
+      if (infNFe.PrestadorServico) {
+        console.log('PrestadorServico:', Object.keys(infNFe.PrestadorServico));
+      }
+      if (infNFe.DeclaracaoPrestacaoServico) {
+        console.log('DeclaracaoPrestacaoServico:', Object.keys(infNFe.DeclaracaoPrestacaoServico));
+      }
+      if (infNFe.ValoresNfe) {
+        console.log('ValoresNfe:', Object.keys(infNFe.ValoresNfe));
+      }
+      
+      // Extração correta baseada na estrutura real de Barueri
+      const prestador = infNFe.PrestadorServico || {};
+      const declaracao = infNFe.DeclaracaoPrestacaoServico || {};
+      const valores = infNFe.ValoresNfe || {};
+      const tomador = declaracao.TomadorServico || {};
+      
       return {
-        numeroNfse: infNFe.NumeroNfe || infNFe.numeroNfe || '',
-        dataEmissao: infNFe.DataEmissaoNFe || infNFe.dataEmissaoNFe || '',
-        codigoVerificacao: infNFe.CodigoVerificacao || infNFe.codigoVerificacao || '',
+        numeroNfse: infNFe.NumeroNfe || '',
+        dataEmissao: infNFe.DataEmissao || infNFe.DataEmissaoNfe || '',
+        codigoVerificacao: infNFe.CodigoVerificacao || '',
         
         prestador: {
-          cnpj: formatarCNPJ(infNFe.CPFCNPJPrestador?.CNPJ || infNFe.cpfCnpjPrestador?.cnpj || ''),
-          razaoSocial: infNFe.RazaoSocialPrestador || infNFe.razaoSocialPrestador || '',
-          endereco: infNFe.EnderecoPrestador?.Logradouro || infNFe.enderecoPrestador?.logradouro || '',
-          numero: infNFe.EnderecoPrestador?.NumeroEndereco || infNFe.enderecoPrestador?.numeroEndereco || '',
-          complemento: infNFe.EnderecoPrestador?.ComplementoEndereco || infNFe.enderecoPrestador?.complementoEndereco || '',
-          bairro: infNFe.EnderecoPrestador?.Bairro || infNFe.enderecoPrestador?.bairro || '',
-          cep: formatarCEP(infNFe.EnderecoPrestador?.CEP || infNFe.enderecoPrestador?.cep || ''),
-          municipio: infNFe.EnderecoPrestador?.Cidade || infNFe.enderecoPrestador?.cidade || '',
-          uf: infNFe.EnderecoPrestador?.UF || infNFe.enderecoPrestador?.uf || '',
-          inscricaoMunicipal: infNFe.InscricaoPrestador || infNFe.inscricaoPrestador || '',
+          cnpj: formatarCNPJ(prestador.IdentificacaoPrestador?.CpfCnpj?.Cnpj || prestador.CpfCnpj?.Cnpj || ''),
+          razaoSocial: prestador.RazaoSocial || prestador.IdentificacaoPrestador?.RazaoSocial || '',
+          endereco: prestador.Endereco?.Endereco || prestador.Endereco?.Logradouro || '',
+          numero: prestador.Endereco?.Numero || '',
+          complemento: prestador.Endereco?.Complemento || '',
+          bairro: prestador.Endereco?.Bairro || '',
+          cep: formatarCEP(prestador.Endereco?.Cep || ''),
+          municipio: prestador.Endereco?.Cidade || prestador.Endereco?.xMun || '',
+          uf: prestador.Endereco?.Uf || prestador.Endereco?.UF || '',
+          inscricaoMunicipal: prestador.IdentificacaoPrestador?.InscricaoMunicipal || prestador.InscricaoMunicipal || '',
           inscricaoEstadual: '',
-          telefone: '',
-          email: infNFe.EmailPrestador || infNFe.emailPrestador || ''
+          telefone: prestador.Contato?.Telefone || '',
+          email: prestador.Contato?.Email || ''
         },
         
         tomador: {
-          cnpj: formatarCNPJ(infNFe.CPFCNPJTomador?.CNPJ || infNFe.cpfCnpjTomador?.cnpj || ''),
-          razaoSocial: infNFe.RazaoSocialTomador || infNFe.razaoSocialTomador || '',
-          endereco: infNFe.EnderecoTomador?.Logradouro || infNFe.enderecoTomador?.logradouro || '',
-          numero: infNFe.EnderecoTomador?.NumeroEndereco || infNFe.enderecoTomador?.numeroEndereco || '',
-          bairro: infNFe.EnderecoTomador?.Bairro || infNFe.enderecoTomador?.bairro || '',
-          cep: formatarCEP(infNFe.EnderecoTomador?.CEP || infNFe.enderecoTomador?.cep || ''),
-          municipio: infNFe.EnderecoTomador?.Cidade || infNFe.enderecoTomador?.cidade || '',
-          uf: infNFe.EnderecoTomador?.UF || infNFe.enderecoTomador?.uf || '',
-          inscricaoMunicipal: '',
-          inscricaoEstadual: infNFe.InscricaoEstadualTomador || infNFe.inscricaoEstadualTomador || ''
+          cnpj: formatarCNPJ(tomador.IdentificacaoTomador?.CpfCnpj?.Cnpj || tomador.CpfCnpj?.Cnpj || ''),
+          razaoSocial: tomador.RazaoSocial || tomador.IdentificacaoTomador?.RazaoSocial || '',
+          endereco: tomador.Endereco?.Endereco || tomador.Endereco?.Logradouro || '',
+          numero: tomador.Endereco?.Numero || '',
+          bairro: tomador.Endereco?.Bairro || '',
+          cep: formatarCEP(tomador.Endereco?.Cep || ''),
+          municipio: tomador.Endereco?.Cidade || tomador.Endereco?.xMun || '',
+          uf: tomador.Endereco?.Uf || tomador.Endereco?.UF || '',
+          inscricaoMunicipal: tomador.IdentificacaoTomador?.InscricaoMunicipal || '',
+          inscricaoEstadual: tomador.IdentificacaoTomador?.InscricaoEstadual || ''
         },
         
-        descricaoServicos: infNFe.Discriminacao || infNFe.discriminacao || '',
-        observacoes: infNFe.Observacoes || infNFe.observacoes || '',
+        descricaoServicos: declaracao.Servico?.Discriminacao || valores.Discriminacao || '',
+        observacoes: valores.Observacoes || '',
         
-        codigoServico: infNFe.CodigoServico || infNFe.codigoServico || '',
-        valorServicos: parseFloat(infNFe.ValorServicos || infNFe.valorServicos || '0'),
-        valorDeducoes: parseFloat(infNFe.ValorDeducoes || infNFe.valorDeducoes || '0'),
-        baseCalculo: parseFloat(infNFe.BaseCalculo || infNFe.baseCalculo || infNFe.ValorServicos || infNFe.valorServicos || '0'),
-        aliquota: parseFloat(infNFe.AliquotaServicos || infNFe.aliquotaServicos || '0'),
-        valorIss: parseFloat(infNFe.ValorISS || infNFe.valorIss || '0'),
-        issRetido: (infNFe.ISSRetido || infNFe.issRetido) === 'true',
-        valorTotalNota: parseFloat(infNFe.ValorTotalNota || infNFe.valorTotalNota || infNFe.ValorServicos || infNFe.valorServicos || '0'),
+        codigoServico: declaracao.Servico?.CodigoTributacaoMunicipio || declaracao.Servico?.ItemListaServico || '',
+        valorServicos: parseFloat(declaracao.Servico?.Valores?.ValorServicos || valores.ValorServicos || '0'),
+        valorDeducoes: parseFloat(declaracao.Servico?.Valores?.ValorDeducoes || valores.ValorDeducoes || '0'),
+        baseCalculo: parseFloat(declaracao.Servico?.Valores?.BaseCalculo || valores.BaseCalculo || declaracao.Servico?.Valores?.ValorServicos || '0'),
+        aliquota: parseFloat(declaracao.Servico?.Valores?.Aliquota || valores.Aliquota || '0'),
+        valorIss: parseFloat(declaracao.Servico?.Valores?.ValorIss || valores.ValorIss || '0'),
+        issRetido: (declaracao.Servico?.Valores?.IssRetido || valores.IssRetido) === '1' || (declaracao.Servico?.Valores?.IssRetido || valores.IssRetido) === 'true',
+        valorTotalNota: parseFloat(valores.ValorTotalRecebido || declaracao.Servico?.Valores?.ValorLiquidoNfse || declaracao.Servico?.Valores?.ValorServicos || '0'),
         
-        pis: parseFloat(infNFe.ValorPIS || infNFe.valorPis || '0'),
-        cofins: parseFloat(infNFe.ValorCOFINS || infNFe.valorCofins || '0'),
-        inss: parseFloat(infNFe.ValorINSS || infNFe.valorInss || '0'),
-        ir: parseFloat(infNFe.ValorIR || infNFe.valorIr || '0'),
-        csll: parseFloat(infNFe.ValorCSLL || infNFe.valorCsll || '0'),
+        pis: parseFloat(declaracao.Servico?.Valores?.ValorPis || valores.ValorPis || '0'),
+        cofins: parseFloat(declaracao.Servico?.Valores?.ValorCofins || valores.ValorCofins || '0'),
+        inss: parseFloat(declaracao.Servico?.Valores?.ValorInss || valores.ValorInss || '0'),
+        ir: parseFloat(declaracao.Servico?.Valores?.ValorIr || valores.ValorIr || '0'),
+        csll: parseFloat(declaracao.Servico?.Valores?.ValorCsll || valores.ValorCsll || '0'),
         
-        outrasInformacoes: infNFe.OutrasInformacoes || infNFe.outrasInformacoes || infNFe.Discriminacao || infNFe.discriminacao || ''
+        outrasInformacoes: valores.OutrasInformacoes || declaracao.Servico?.Discriminacao || ''
       };
     }
     
