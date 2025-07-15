@@ -44,3 +44,8 @@ Data: 14/07/2025
 Ticket: #
 Tipo: Melhoria
 Descrição: No menu usuários foi adicionado um botão que será utilizado para abertura de chamado.
+
+Data: 15/07/2025
+Ticket: #SDFE-9
+Tipo: Bug
+Descrição: DANFSe das NFSe do município de BARUERI estava com erro no PDF. Foi ajustado e o PDF esta sendo visualizado nornalmente.

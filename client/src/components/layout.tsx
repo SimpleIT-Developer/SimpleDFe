@@ -114,7 +114,7 @@ export function Layout({ children, currentPage }: LayoutProps) {
               <AnimatedLogo size="sm" />
               <div>
               <h2 className="text-white font-semibold">SimpleDFe</h2>
-              <p className="text-gray-400 text-xs">v1.0.0</p>
+              <p className="text-gray-400 text-xs">v2025-07-15</p>
             </div>
           </div>
 
@@ -258,13 +258,12 @@ export function Layout({ children, currentPage }: LayoutProps) {
         </main>
       </div>
     </div>
-
-    {/* Version Notification Dialog */}
-    <VersionNotificationDialog
-      isOpen={showVersionDialog}
-      onClose={() => setShowVersionDialog(false)}
-      isManualView={false}
-    />
+      {/* Version Notification Dialog */}
+      <VersionNotificationDialog
+        isOpen={showVersionDialog}
+        onClose={() => setShowVersionDialog(false)}
+        isManualView={false}
+      />
     </>
   );
 }
