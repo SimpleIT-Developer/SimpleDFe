@@ -34,6 +34,17 @@ export class ERPService {
       return cep;
     };
     
+    // Escapar caracteres especiais XML
+    const escapeXML = (str: string): string => {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    };
+    
     return `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tot="http://www.totvs.com/">
    <soapenv:Header/>
    <soapenv:Body>
@@ -44,19 +55,19 @@ export class ERPService {
     <CODEXTERNO>00000000</CODEXTERNO>
     <CODCOLIGADA>${ERP_CONFIG.DEFAULTS.CODCOLIGADA}</CODCOLIGADA>
     <CODCFO>-1</CODCFO>
-    <NOMEFANTASIA>${cnpjData.fantasia || cnpjData.nome}</NOMEFANTASIA>
-    <NOME>${cnpjData.nome}</NOME>
+    <NOMEFANTASIA>${escapeXML(cnpjData.fantasia || cnpjData.nome)}</NOMEFANTASIA>
+    <NOME>${escapeXML(cnpjData.nome)}</NOME>
     <CGCCFO>${formatCNPJ(cnpjData.cnpj)}</CGCCFO>
     <PAGREC>${ERP_CONFIG.DEFAULTS.PAGREC}</PAGREC>
-    <RUA>${cnpjData.logradouro || ''}</RUA>
-    <NUMERO>${cnpjData.numero || ''}</NUMERO>
-    <BAIRRO>${cnpjData.bairro || ''}</BAIRRO>
-    <CIDADE>${cnpjData.municipio || ''}</CIDADE>
-    <CODETD>${cnpjData.uf || ''}</CODETD>
+    <RUA>${escapeXML(cnpjData.logradouro || '')}</RUA>
+    <NUMERO>${escapeXML(cnpjData.numero || '')}</NUMERO>
+    <BAIRRO>${escapeXML(cnpjData.bairro || '')}</BAIRRO>
+    <CIDADE>${escapeXML(cnpjData.municipio || '')}</CIDADE>
+    <CODETD>${escapeXML(cnpjData.uf || '')}</CODETD>
     <CEP>${formatCEP(cnpjData.cep || '')}</CEP>
-    <TELEFONE>${cnpjData.telefone || ''}</TELEFONE>
-    <EMAIL>${cnpjData.email || ''}</EMAIL>
-    <CONTATO>${cnpjData.nome}</CONTATO>
+    <TELEFONE>${escapeXML(cnpjData.telefone || '')}</TELEFONE>
+    <EMAIL>${escapeXML(cnpjData.email || '')}</EMAIL>
+    <CONTATO>${escapeXML(cnpjData.nome)}</CONTATO>
     <ATIVO>${ERP_CONFIG.DEFAULTS.ATIVO}</ATIVO>
     <LIMITECREDITO>${ERP_CONFIG.DEFAULTS.LIMITECREDITO}</LIMITECREDITO>
     <DATAULTALTERACAO>${currentDate}</DATAULTALTERACAO>
