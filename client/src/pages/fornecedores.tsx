@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, RefreshCw, CheckCircle, AlertCircle, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import type { Fornecedor, FornecedorResponse } from "@shared/schema";
@@ -48,6 +48,7 @@ function FornecedoresPage() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedFornecedor, setSelectedFornecedor] = useState<Fornecedor | null>(null);
   const [verificandoERP, setVerificandoERP] = useState<number | null>(null);
+  const [realizandoPreCadastro, setRealizandoPreCadastro] = useState<number | null>(null);
 
   const handleRefreshFornecedores = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/fornecedores"] });
@@ -134,6 +135,53 @@ function FornecedoresPage() {
   });
   */
 
+  // Mutação para realizar pré-cadastro no ERP
+  const preCadastroERPMutation = useMutation({
+    mutationFn: async (fornecedor: Fornecedor) => {
+      const response = await fetch(`/api/fornecedores/pre-cadastro-erp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ 
+          fornecedorId: fornecedor.id
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erro ao realizar pré-cadastro no ERP");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setRealizandoPreCadastro(null);
+      if (data.success) {
+        toast({
+          title: "Pré-cadastro Realizado",
+          description: data.erpCode 
+            ? `Fornecedor pré-cadastrado no ERP com código ${data.erpCode}`
+            : "Pré-cadastro realizado com sucesso no ERP",
+        });
+      } else {
+        toast({
+          title: "Informação",
+          description: data.message || "Não foi possível realizar o pré-cadastro",
+          variant: "destructive",
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/fornecedores"] });
+    },
+    onError: (error: any) => {
+      setRealizandoPreCadastro(null);
+      toast({
+        title: "Erro no Pré-cadastro",
+        description: error.message || "Erro ao realizar pré-cadastro no ERP",
+        variant: "destructive",
+      });
+    },
+  });
+
   const fornecedores = fornecedorData?.fornecedores || [];
   const total = fornecedorData?.total || 0;
   const totalPages = fornecedorData?.totalPages || 0;
@@ -151,6 +199,12 @@ function FornecedoresPage() {
     verificarERPMutation.mutate(fornecedor);
   };
   */
+
+  // Função para realizar pré-cadastro no ERP
+  const handlePreCadastroERP = (fornecedor: Fornecedor) => {
+    setRealizandoPreCadastro(fornecedor.id);
+    preCadastroERPMutation.mutate(fornecedor);
+  };
 
   // Função para limpar filtros
   const handleClearFilters = () => {
@@ -317,7 +371,7 @@ function FornecedoresPage() {
                             Data {renderSortIcon("data_cadastro")}
                           </Button>
                         </th>
-                        <th className="text-left py-3 px-2 w-20">
+                        <th className="text-left py-3 px-2 w-24">
                           <span className="text-gray-300 font-semibold text-xs">Ações</span>
                         </th>
                       </tr>
@@ -361,6 +415,23 @@ function FornecedoresPage() {
                               >
                                 <Eye className="w-3 h-3" />
                               </Button>
+                              {/* Novo botão de pré-cadastro no ERP */}
+                              {!fornecedor.codigo_erp && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handlePreCadastroERP(fornecedor)}
+                                  disabled={realizandoPreCadastro === fornecedor.id}
+                                  className="border-purple-500/30 text-purple-400 hover:bg-purple-500/20 w-7 h-7 p-0"
+                                  title="Realizar Pré-Cadastro no ERP"
+                                >
+                                  {realizandoPreCadastro === fornecedor.id ? (
+                                    <RefreshCw className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <UserPlus className="w-3 h-3" />
+                                  )}
+                                </Button>
+                              )}
                               {/* Botão de verificação ERP comentado - funcionalidade desabilitada
                               <Button
                                 size="sm"

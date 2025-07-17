@@ -16,6 +16,8 @@ import { generateNfseRelatorioPDF } from "./nfse-relatorio-generator";
 import { generateNfseTributosRelatorioPDF } from "./nfse-tributos-relatorio-generator";
 import multer from 'multer';
 import * as XLSX from 'xlsx';
+import { CNPJService } from "./services/cnpj-service";
+import { ERPService } from "./services/erp-service";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
@@ -1261,6 +1263,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   */
+
+  // Rota para realizar pré-cadastro no ERP
+  app.post("/api/fornecedores/pre-cadastro-erp", authenticateToken, async (req: any, res) => {
+    try {
+      const { fornecedorId } = req.body;
+
+      // Validação básica
+      if (!fornecedorId) {
+        return res.status(400).json({ message: "ID do fornecedor é obrigatório" });
+      }
+
+      console.log(`[PRE-CADASTRO-ERP] Iniciando pré-cadastro para fornecedor ID: ${fornecedorId}`);
+
+      // Buscar dados do fornecedor na base local
+      const checkQuery = "SELECT id, nome, cnpj FROM simplefcfo WHERE id = ?";
+      const [existing] = await mysqlPool.execute(checkQuery, [fornecedorId]) as any;
+      
+      if (!existing || existing.length === 0) {
+        return res.status(404).json({ message: "Fornecedor não encontrado" });
+      }
+
+      const fornecedor = existing[0];
+      console.log(`[PRE-CADASTRO-ERP] Fornecedor encontrado: ${fornecedor.nome} (${fornecedor.cnpj})`);
+
+      // Passo 1: Consultar dados do CNPJ na ReceitaWS
+      let cnpjData;
+      try {
+        cnpjData = await CNPJService.consultarCNPJ(fornecedor.cnpj);
+        if (!cnpjData) {
+          return res.status(400).json({ 
+            message: "Não foi possível obter dados do CNPJ na Receita Federal" 
+          });
+        }
+        console.log(`[PRE-CADASTRO-ERP] Dados do CNPJ obtidos com sucesso`);
+      } catch (cnpjError) {
+        console.error('[PRE-CADASTRO-ERP] Erro ao consultar CNPJ:', cnpjError);
+        return res.status(400).json({ 
+          message: `Erro ao consultar CNPJ: ${cnpjError instanceof Error ? cnpjError.message : 'Erro desconhecido'}` 
+        });
+      }
+
+      // Passo 2: Realizar pré-cadastro no ERP via SOAP
+      try {
+        const erpResult = await ERPService.realizarPreCadastro(cnpjData);
+        
+        if (erpResult.success) {
+          // Se o pré-cadastro foi bem-sucedido e retornou código ERP, atualizar na base local
+          if (erpResult.erpCode) {
+            const updateQuery = "UPDATE simplefcfo SET codigo_erp = ?, data_cadastro = NOW() WHERE id = ?";
+            await mysqlPool.execute(updateQuery, [erpResult.erpCode, fornecedorId]);
+            console.log(`[PRE-CADASTRO-ERP] Código ERP ${erpResult.erpCode} atualizado para fornecedor ${fornecedorId}`);
+          }
+
+          res.json({
+            success: true,
+            message: erpResult.message,
+            erpCode: erpResult.erpCode,
+            fornecedor: {
+              id: fornecedor.id,
+              nome: fornecedor.nome,
+              cnpj: fornecedor.cnpj
+            },
+            cnpjData: {
+              nome: cnpjData.nome,
+              fantasia: cnpjData.fantasia,
+              municipio: cnpjData.municipio,
+              uf: cnpjData.uf,
+              situacao: cnpjData.situacao
+            }
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            message: erpResult.message
+          });
+        }
+      } catch (erpError) {
+        console.error('[PRE-CADASTRO-ERP] Erro no ERP:', erpError);
+        res.status(500).json({
+          success: false,
+          message: `Erro no sistema ERP: ${erpError instanceof Error ? erpError.message : 'Erro desconhecido'}`
+        });
+      }
+
+    } catch (error) {
+      console.error("[PRE-CADASTRO-ERP] Erro geral:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Erro interno do servidor ao realizar pré-cadastro" 
+      });
+    }
+  });
 
   // Rota para download em lote de XMLs da NFe
   app.post('/api/nfe-bulk-download-xml', authenticateToken, async (req: any, res) => {
