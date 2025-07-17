@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, RefreshCw, CheckCircle, AlertCircle, UserPlus } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ArrowUp, ArrowDown, Eye, RefreshCw, CheckCircle, AlertCircle, UserPlus, FileText, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import type { Fornecedor, FornecedorResponse } from "@shared/schema";
@@ -49,6 +49,11 @@ function FornecedoresPage() {
   const [selectedFornecedor, setSelectedFornecedor] = useState<Fornecedor | null>(null);
   const [verificandoERP, setVerificandoERP] = useState<number | null>(null);
   const [realizandoPreCadastro, setRealizandoPreCadastro] = useState<number | null>(null);
+  
+  // Estados para logs SOAP
+  const [soapLogsModalOpen, setSoapLogsModalOpen] = useState(false);
+  const [soapLogs, setSoapLogs] = useState<any[]>([]);
+  const [buscandoLogs, setBuscandoLogs] = useState<number | null>(null);
 
   const handleRefreshFornecedores = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/fornecedores"] });
@@ -204,6 +209,39 @@ function FornecedoresPage() {
   const handlePreCadastroERP = (fornecedor: Fornecedor) => {
     setRealizandoPreCadastro(fornecedor.id);
     preCadastroERPMutation.mutate(fornecedor);
+  };
+
+  // Função para buscar logs SOAP
+  const handleViewSoapLogs = async (fornecedor: Fornecedor) => {
+    setBuscandoLogs(fornecedor.id);
+    try {
+      const response = await fetch(`/api/fornecedores/soap-logs/${fornecedor.cnpj.replace(/[^\d]/g, '')}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setSoapLogs(data.logs || []);
+        setSelectedFornecedor(fornecedor);
+        setSoapLogsModalOpen(true);
+      } else {
+        toast({
+          title: "Erro",
+          description: data.message || "Erro ao buscar logs SOAP",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro de Conexão",
+        description: "Erro ao conectar com o servidor",
+        variant: "destructive",
+      });
+    } finally {
+      setBuscandoLogs(null);
+    }
   };
 
   // Função para limpar filtros
@@ -432,6 +470,21 @@ function FornecedoresPage() {
                                   )}
                                 </Button>
                               )}
+                              {/* Botão LOG para visualizar logs SOAP */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewSoapLogs(fornecedor)}
+                                disabled={buscandoLogs === fornecedor.id}
+                                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/20 w-7 h-7 p-0"
+                                title="Visualizar Logs SOAP de Debug"
+                              >
+                                {buscandoLogs === fornecedor.id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <FileText className="w-3 h-3" />
+                                )}
+                              </Button>
                               {/* Botão de verificação ERP comentado - funcionalidade desabilitada
                               <Button
                                 size="sm"
@@ -573,6 +626,82 @@ function FornecedoresPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Modal de Logs SOAP */}
+        <Dialog open={soapLogsModalOpen} onOpenChange={setSoapLogsModalOpen}>
+          <DialogContent className="glassmorphism border-white/20 bg-black/90 max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Logs SOAP de Debug - {selectedFornecedor?.nome}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {soapLogs.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">Nenhum log SOAP encontrado para este fornecedor.</p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Logs são criados quando você realiza um pré-cadastro no ERP.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {soapLogs.map((log, index) => (
+                    <Card key={index} className="glassmorphism border-white/10 bg-white/5">
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          {/* Header do log */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-blue-400" />
+                              <span className="text-blue-400 font-medium">
+                                {new Date(log.timestamp).toLocaleString('pt-BR')}
+                              </span>
+                            </div>
+                            {log.erpCode && (
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                ERP: {log.erpCode}
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          {/* Request SOAP */}
+                          <div>
+                            <h4 className="text-yellow-400 font-medium mb-2">📤 Requisição SOAP Enviada:</h4>
+                            <div className="bg-black/40 p-3 rounded border border-white/10 max-h-40 overflow-y-auto">
+                              <pre className="text-gray-300 text-xs whitespace-pre-wrap">
+                                {log.request}
+                              </pre>
+                            </div>
+                          </div>
+                          
+                          {/* Response SOAP */}
+                          <div>
+                            <h4 className="text-green-400 font-medium mb-2">📥 Resposta SOAP Recebida:</h4>
+                            <div className="bg-black/40 p-3 rounded border border-white/10 max-h-40 overflow-y-auto">
+                              <pre className="text-gray-300 text-xs whitespace-pre-wrap">
+                                {log.response}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex justify-end pt-4 border-t border-white/10">
+                <Button 
+                  onClick={() => setSoapLogsModalOpen(false)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </Layout>

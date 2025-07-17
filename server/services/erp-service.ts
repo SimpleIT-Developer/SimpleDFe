@@ -1,6 +1,16 @@
 import { ERP_CONFIG } from "../config/erp-config";
 import { CNPJData } from "./cnpj-service";
 
+export interface SoapLog {
+  request: string;
+  response: string;
+  timestamp: string;
+  erpCode?: string;
+}
+
+// In-memory storage for SOAP logs (for debugging purposes)
+const soapLogs = new Map<string, SoapLog[]>();
+
 export class ERPService {
   static createSOAPEnvelope(cnpjData: CNPJData): string {
     const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -144,22 +154,46 @@ export class ERPService {
         throw new Error(`Erro do ERP: ${errorMessage}`);
       }
 
-      // Try to extract the ERP code from the response
+      // Try to extract the ERP code from the response using the correct format
       let erpCode: string | undefined;
-      const codeMatch = responseText.match(/<CODCFO>(\d+)<\/CODCFO>/);
-      if (codeMatch) {
-        erpCode = codeMatch[1];
+      // Look for the pattern <SaveRecordResult>1;09989435</SaveRecordResult>
+      const resultMatch = responseText.match(/<SaveRecordResult>([^<]+)<\/SaveRecordResult>/);
+      if (resultMatch) {
+        const resultContent = resultMatch[1];
+        // Split by semicolon and get the second part (the ERP code)
+        const parts = resultContent.split(';');
+        if (parts.length >= 2) {
+          erpCode = parts[1];
+        }
       }
+
+      // Store the SOAP response for debugging
+      this.storeSoapLog(cnpjData.cnpj, {
+        request: soapEnvelope,
+        response: responseText,
+        timestamp: new Date().toISOString(),
+        erpCode
+      });
 
       console.log(`[ERP-SERVICE] Pré-cadastro realizado com sucesso. Código ERP: ${erpCode || 'não informado'}`);
 
       return {
         success: true,
-        message: 'Pré-cadastro realizado com sucesso no ERP',
+        message: erpCode 
+          ? `Pré-cadastro realizado com sucesso no ERP! Código do fornecedor: ${erpCode}`
+          : 'Pré-cadastro enviado para o ERP. Aguarde o processamento.',
         erpCode
       };
     } catch (error) {
       console.error('[ERP-SERVICE] Erro no pré-cadastro:', error);
+      
+      // Store error log for debugging
+      this.storeSoapLog(cnpjData.cnpj, {
+        request: this.createSOAPEnvelope(cnpjData),
+        response: error instanceof Error ? error.message : 'Erro desconhecido',
+        timestamp: new Date().toISOString(),
+        erpCode: undefined
+      });
       
       // Return more user-friendly error messages
       let message = 'Erro ao realizar pré-cadastro no ERP';
@@ -178,5 +212,29 @@ export class ERPService {
         message
       };
     }
+  }
+
+  // Store SOAP log for debugging
+  static storeSoapLog(cnpj: string, log: SoapLog): void {
+    if (!soapLogs.has(cnpj)) {
+      soapLogs.set(cnpj, []);
+    }
+    const logs = soapLogs.get(cnpj)!;
+    logs.push(log);
+    
+    // Keep only the last 10 logs per CNPJ
+    if (logs.length > 10) {
+      logs.shift();
+    }
+  }
+
+  // Get SOAP logs for a specific CNPJ
+  static getSoapLogs(cnpj: string): SoapLog[] {
+    return soapLogs.get(cnpj) || [];
+  }
+
+  // Get all SOAP logs (for admin purposes)
+  static getAllSoapLogs(): Map<string, SoapLog[]> {
+    return soapLogs;
   }
 }
