@@ -1,24 +1,27 @@
-Registro de Atualizações - Melhorias e Correções
+Data: 15/07/2025
+Ticket: #SDFE-9
+Tipo: Bug
+Descrição: DANFSe das NFSe do município de BARUERI estava com erro no PDF. Foi ajustado e o PDF está sendo visualizado normalmente.
+
+Data: 14/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: No menu usuários foi adicionado um botão que será utilizado para abertura de chamado.
+
+Data: 14/07/2025
+Ticket: #
+Tipo: Melhoria
+Descrição: Na tela de NFSe foi incluída a coluna Número da NFSE.
 
 Data: 04/07/2025
 Ticket: #
 Tipo: Melhoria
-Descrição: Melhoria na digitação de datas nos filtros.
+Descrição: Na tela de NFe foi incluído o botão de VERIFICAR EVENTOS DA NFe.
 
 Data: 04/07/2025
 Ticket: #
 Tipo: Melhoria
-Descrição: Melhoria na busca dentro da tela de NFe, que quando buscava a tela toda atualizava a cada caracter digitado.
-
-Data: 04/07/2025
-Ticket: #
-Tipo: Nova Funcionalidade
-Descrição: Exportação de XML NFe e XML NFSe individual, por lote e por data.
-
-Data: 04/07/2025
-Ticket: #
-Tipo: Nova Funcionalidade
-Descrição: Exportação do relatório de resumo de NFe e NFSe em Excel.
+Descrição: Na tela de NFe foi incluído um campo STATUS onde podemos ver se a NFe está EM PROCESSAMENTO, AUTORIZADA ou CANCELADA.
 
 Data: 04/07/2025
 Ticket: #
@@ -27,25 +30,20 @@ Descrição: Na tela de NFe o campo Empresa agora reflete exatamente a Empresa d
 
 Data: 04/07/2025
 Ticket: #
-Tipo: Melhoria
-Descrição: Na tela de NFe foi incluído um campo STATUS onde podemos ver se a NFe está EM PROCESSAMENTO, AUTORIZADA ou CANCELADA
+Tipo: Nova Funcionalidade
+Descrição: Exportação do relatório de resumo de NFe e NFSe em Excel.
+
+Data: 04/07/2025
+Ticket: #
+Tipo: Nova Funcionalidade
+Descrição: Exportação de XML NFe e XML NFSe individual, por lote e por data.
 
 Data: 04/07/2025
 Ticket: #
 Tipo: Melhoria
-Descrição: Na tela de NFe foi incluído o botao de VERIFICAR EVENTOS DA NFe.
+Descrição: Melhoria na busca dentro da tela de NFe, que quando buscava a tela toda atualizava a cada caractere digitado.
 
-Data: 14/07/2025
+Data: 04/07/2025
 Ticket: #
 Tipo: Melhoria
-Descrição: Na tela de NFSe foi incluída a coluna Número da NFSE.
-
-Data: 14/07/2025
-Ticket: #
-Tipo: Melhoria
-Descrição: No menu usuários foi adicionado um botão que será utilizado para abertura de chamado.
-
-Data: 15/07/2025
-Ticket: #SDFE-9
-Tipo: Bug
-Descrição: DANFSe das NFSe do município de BARUERI estava com erro no PDF. Foi ajustado e o PDF esta sendo visualizado nornalmente.
+Descrição: Melhoria na digitação de datas nos filtros.

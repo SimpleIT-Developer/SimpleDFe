@@ -103,23 +103,38 @@ export class ERPService {
       const credentials = Buffer.from(`${ERP_CONFIG.AUTH.USERNAME}:${ERP_CONFIG.AUTH.PASSWORD}`).toString('base64');
       
       console.log(`[ERP-SERVICE] Enviando requisição SOAP para ${ERP_CONFIG.SOAP_ENDPOINT}`);
+      console.log(`[ERP-SERVICE] Tamanho do envelope SOAP: ${soapEnvelope.length} caracteres`);
       
       const response = await fetch(ERP_CONFIG.SOAP_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': '',
+          'SOAPAction': 'SaveRecord',
           'Authorization': `Basic ${credentials}`,
           'User-Agent': 'SimpleDFe/1.0'
         },
-        body: soapEnvelope
+        body: soapEnvelope,
+        timeout: 30000 // 30 second timeout
       });
 
       const responseText = await response.text();
-      console.log(`[ERP-SERVICE] Resposta do ERP (status ${response.status}):`, responseText.substring(0, 500));
+      console.log(`[ERP-SERVICE] Resposta do ERP (status ${response.status}):`, responseText.substring(0, 1000));
 
       if (!response.ok) {
-        throw new Error(`Erro na requisição ERP: ${response.status} - ${response.statusText}`);
+        let errorMessage = `Erro na requisição ERP: ${response.status} - ${response.statusText}`;
+        
+        if (response.status === 404) {
+          errorMessage = `Serviço ERP não encontrado no caminho especificado. Status: ${response.status}`;
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = `Erro de autenticação no ERP. Verifique as credenciais. Status: ${response.status}`;
+        } else if (response.status === 500) {
+          errorMessage = `Erro interno do servidor ERP. O serviço pode estar temporariamente indisponível. Status: ${response.status}`;
+        }
+        
+        // Log additional details for debugging
+        console.log(`[ERP-SERVICE] Headers de resposta:`, Object.fromEntries(response.headers.entries()));
+        
+        throw new Error(errorMessage);
       }
 
       // Check if the response contains an error

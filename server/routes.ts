@@ -1264,6 +1264,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   */
 
+  // Rota para testar conectividade com ERP
+  app.get("/api/fornecedores/test-erp", authenticateToken, async (req: any, res) => {
+    try {
+      console.log('[TEST-ERP] Testando conectividade com ERP');
+      
+      const response = await fetch(ERP_CONFIG.SOAP_ENDPOINT, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'SimpleDFe/1.0'
+        }
+      });
+
+      console.log(`[TEST-ERP] Status da resposta: ${response.status}`);
+      const responseText = await response.text();
+      console.log(`[TEST-ERP] Resposta: ${responseText.substring(0, 500)}`);
+
+      res.json({
+        success: true,
+        status: response.status,
+        endpoint: ERP_CONFIG.SOAP_ENDPOINT,
+        message: `Endpoint respondeu com status ${response.status}`,
+        response: responseText.substring(0, 200)
+      });
+
+    } catch (error) {
+      console.error('[TEST-ERP] Erro no teste:', error);
+      res.status(500).json({
+        success: false,
+        endpoint: ERP_CONFIG.SOAP_ENDPOINT,
+        message: `Erro ao conectar: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+      });
+    }
+  });
+
   // Rota para realizar pré-cadastro no ERP
   app.post("/api/fornecedores/pre-cadastro-erp", authenticateToken, async (req: any, res) => {
     try {
