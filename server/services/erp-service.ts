@@ -143,8 +143,21 @@ export class ERPService {
       const credentials = Buffer.from(`${ERP_CONFIG.AUTH.USERNAME}:${ERP_CONFIG.AUTH.PASSWORD}`).toString('base64');
       
       console.log(`[ERP-SERVICE] Enviando requisição SOAP para ${ERP_CONFIG.SOAP_ENDPOINT}`);
+      console.log(`[ERP-SERVICE] Username: ${ERP_CONFIG.AUTH.USERNAME}`);
+      console.log(`[ERP-SERVICE] Credenciais Base64: ${credentials.substring(0, 20)}...`);
       console.log(`[ERP-SERVICE] Tamanho do envelope SOAP: ${soapEnvelope.length} caracteres`);
+      console.log(`[ERP-SERVICE] === ENVELOPE SOAP COMPLETO ===`);
+      console.log(soapEnvelope);
+      console.log(`[ERP-SERVICE] === FIM ENVELOPE SOAP ===`);
       
+      console.log(`[ERP-SERVICE] === DEBUG HEADERS SENDO ENVIADOS ===`);
+      console.log(`[ERP-SERVICE] Content-Type: text/xml; charset=utf-8`);
+      console.log(`[ERP-SERVICE] SOAPAction: SaveRecord`);
+      console.log(`[ERP-SERVICE] Authorization: Basic ${credentials}`);
+      console.log(`[ERP-SERVICE] User-Agent: SimpleDFe/1.0`);
+      console.log(`[ERP-SERVICE] Content-Length: ${soapEnvelope.length}`);
+      console.log(`[ERP-SERVICE] === FIM DEBUG HEADERS ===`);
+
       const response = await fetch(ERP_CONFIG.SOAP_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -158,7 +171,10 @@ export class ERPService {
       });
 
       const responseText = await response.text();
-      console.log(`[ERP-SERVICE] Resposta do ERP (status ${response.status}):`, responseText.substring(0, 1000));
+      console.log(`[ERP-SERVICE] Status da resposta: ${response.status} ${response.statusText}`);
+      console.log(`[ERP-SERVICE] Headers de resposta:`, Object.fromEntries(response.headers.entries()));
+      console.log(`[ERP-SERVICE] Tamanho da resposta: ${responseText.length} caracteres`);
+      console.log(`[ERP-SERVICE] Resposta completa:`, responseText);
 
       if (!response.ok) {
         let errorMessage = `Erro na requisição ERP: ${response.status} - ${response.statusText}`;
