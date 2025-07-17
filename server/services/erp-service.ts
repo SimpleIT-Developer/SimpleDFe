@@ -151,20 +151,27 @@ export class ERPService {
       console.log(`[ERP-SERVICE] === FIM ENVELOPE SOAP ===`);
       
       console.log(`[ERP-SERVICE] === DEBUG HEADERS SENDO ENVIADOS ===`);
-      console.log(`[ERP-SERVICE] Content-Type: text/xml; charset=utf-8`);
-      console.log(`[ERP-SERVICE] SOAPAction: SaveRecord`);
+      console.log(`[ERP-SERVICE] Accept-Encoding: gzip,deflate`);
+      console.log(`[ERP-SERVICE] Content-Type: text/xml;charset=UTF-8`);
+      console.log(`[ERP-SERVICE] SOAPAction: "http://www.totvs.com/IwsDataServer/SaveRecord"`);
       console.log(`[ERP-SERVICE] Authorization: Basic ${credentials}`);
-      console.log(`[ERP-SERVICE] User-Agent: SimpleDFe/1.0`);
       console.log(`[ERP-SERVICE] Content-Length: ${soapEnvelope.length}`);
+      console.log(`[ERP-SERVICE] Host: legiaoda142257.rm.cloudtotvs.com.br:2201`);
+      console.log(`[ERP-SERVICE] Connection: Keep-Alive`);
+      console.log(`[ERP-SERVICE] User-Agent: Apache-HttpClient/4.5.5 (Java/16.0.2)`);
       console.log(`[ERP-SERVICE] === FIM DEBUG HEADERS ===`);
 
       const response = await fetch(ERP_CONFIG.SOAP_ENDPOINT, {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          'SOAPAction': 'SaveRecord',
+          'Accept-Encoding': 'gzip,deflate',
+          'Content-Type': 'text/xml;charset=UTF-8',
+          'SOAPAction': '"http://www.totvs.com/IwsDataServer/SaveRecord"',
           'Authorization': `Basic ${credentials}`,
-          'User-Agent': 'SimpleDFe/1.0'
+          'Content-Length': soapEnvelope.length.toString(),
+          'Host': 'legiaoda142257.rm.cloudtotvs.com.br:2201',
+          'Connection': 'Keep-Alive',
+          'User-Agent': 'Apache-HttpClient/4.5.5 (Java/16.0.2)'
         },
         body: soapEnvelope,
         timeout: 30000 // 30 second timeout
