@@ -3,7 +3,7 @@
 
 export const ERP_CONFIG = {
   // SOAP Service Configuration
-  SOAP_ENDPOINT: "https://legiaoda142257.rm.cloudtotvs.com.br:2201/wsDataServer/IwsDataSer",
+  SOAP_ENDPOINT: "https://legiaoda142257.rm.cloudtotvs.com.br:2201/wsDataServer/IwsDataServer",
   
   // Authentication Settings
   AUTH: {
