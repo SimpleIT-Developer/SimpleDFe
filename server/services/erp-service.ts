@@ -13,7 +13,26 @@ const soapLogs = new Map<string, SoapLog[]>();
 
 export class ERPService {
   static createSOAPEnvelope(cnpjData: CNPJData): string {
-    const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const currentDate = new Date().toISOString().split('T')[0] + 'T00:00:00'; // Format: YYYY-MM-DDTHH:mm:ss
+    
+    // Formatar CNPJ (XX.XXX.XXX/XXXX-XX)
+    const formatCNPJ = (cnpj: string): string => {
+      const numbers = cnpj.replace(/\D/g, '');
+      if (numbers.length === 14) {
+        return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+      }
+      return cnpj;
+    };
+    
+    // Formatar CEP (XXXXX-XXX)
+    const formatCEP = (cep: string): string => {
+      if (!cep) return '';
+      const numbers = cep.replace(/\D/g, '');
+      if (numbers.length === 8) {
+        return numbers.replace(/(\d{5})(\d{3})/, '$1-$2');
+      }
+      return cep;
+    };
     
     return `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tot="http://www.totvs.com/">
    <soapenv:Header/>
@@ -27,14 +46,14 @@ export class ERPService {
     <CODCFO>-1</CODCFO>
     <NOMEFANTASIA>${cnpjData.fantasia || cnpjData.nome}</NOMEFANTASIA>
     <NOME>${cnpjData.nome}</NOME>
-    <CGCCFO>${cnpjData.cnpj}</CGCCFO>
+    <CGCCFO>${formatCNPJ(cnpjData.cnpj)}</CGCCFO>
     <PAGREC>${ERP_CONFIG.DEFAULTS.PAGREC}</PAGREC>
     <RUA>${cnpjData.logradouro || ''}</RUA>
     <NUMERO>${cnpjData.numero || ''}</NUMERO>
     <BAIRRO>${cnpjData.bairro || ''}</BAIRRO>
     <CIDADE>${cnpjData.municipio || ''}</CIDADE>
     <CODETD>${cnpjData.uf || ''}</CODETD>
-    <CEP>${cnpjData.cep || ''}</CEP>
+    <CEP>${formatCEP(cnpjData.cep || '')}</CEP>
     <TELEFONE>${cnpjData.telefone || ''}</TELEFONE>
     <EMAIL>${cnpjData.email || ''}</EMAIL>
     <CONTATO>${cnpjData.nome}</CONTATO>

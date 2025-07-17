@@ -134,6 +134,12 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
   - Fluxo: consulta CNPJ → monta XML SOAP → envia para ERP → atualiza código ERP local
   - Interface com feedback visual e mensagens de sucesso/erro detalhadas
   - Integração com sistema de toast para notificações ao usuário
+  - **Parsing da resposta SOAP**: extrai código do fornecedor do formato <SaveRecordResult>1;09989435</SaveRecordResult>
+  - **Sistema de logs SOAP**: armazena requisições e respostas para debugging (10 logs por CNPJ)
+  - **Botão LOG**: interface para visualizar histórico de comunicação SOAP com modal detalhado
+  - **Formatação correta**: CNPJ formatado, datas ISO (2023-09-08T00:00:00), CEP com hífen
+  - **Rota de debug**: /api/fornecedores/soap-logs/:cnpj para acesso aos logs SOAP
+  - **Mensagens aprimoradas**: sucesso mostra código ERP obtido (ex: "Código do fornecedor: 09989435")
 - July 7, 2025: Adicionado botão "Abrir Ticket" na tela de usuários
   - Novo botão após "Ver Atualizações" que direciona para portal de suporte
   - Abre em nova aba: https://simpleitsolucoes.atlassian.net/servicedesk/customer/portal/8/user/login?destination=portal%2F8
