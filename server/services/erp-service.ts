@@ -286,6 +286,13 @@ export class ERPService {
     return soapLogs.get(cnpj) || [];
   }
 
+  // Clear SOAP logs for a specific CNPJ
+  static clearSoapLogs(cnpj: string): boolean {
+    const existed = soapLogs.has(cnpj);
+    soapLogs.delete(cnpj);
+    return existed;
+  }
+
   // Get all SOAP logs (for admin purposes)
   static getAllSoapLogs(): Map<string, SoapLog[]> {
     return soapLogs;

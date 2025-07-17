@@ -54,6 +54,8 @@ function FornecedoresPage() {
   const [soapLogsModalOpen, setSoapLogsModalOpen] = useState(false);
   const [soapLogs, setSoapLogs] = useState<any[]>([]);
   const [buscandoLogs, setBuscandoLogs] = useState<number | null>(null);
+  const [limpandoLogs, setLimpandoLogs] = useState(false);
+  const [fornecedorSelecionadoLogs, setFornecedorSelecionadoLogs] = useState<any>(null);
 
   const handleRefreshFornecedores = () => {
     queryClient.invalidateQueries({ queryKey: ["/api/fornecedores"] });
@@ -224,7 +226,7 @@ function FornecedoresPage() {
       
       if (data.success) {
         setSoapLogs(data.logs || []);
-        setSelectedFornecedor(fornecedor);
+        setFornecedorSelecionadoLogs(fornecedor);
         setSoapLogsModalOpen(true);
       } else {
         toast({
@@ -241,6 +243,44 @@ function FornecedoresPage() {
       });
     } finally {
       setBuscandoLogs(null);
+    }
+  };
+
+  // Função para limpar logs SOAP
+  const handleLimparLogs = async () => {
+    if (!fornecedorSelecionadoLogs) return;
+    
+    setLimpandoLogs(true);
+    try {
+      const response = await fetch(`/api/fornecedores/soap-logs/${fornecedorSelecionadoLogs.cnpj.replace(/[^\d]/g, '')}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setSoapLogs([]);
+        toast({
+          title: "Logs Limpos",
+          description: "Logs SOAP foram excluídos com sucesso",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: data.message || "Erro ao limpar logs SOAP",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro de Conexão",
+        description: "Erro ao conectar com o servidor",
+        variant: "destructive",
+      });
+    } finally {
+      setLimpandoLogs(false);
     }
   };
 
@@ -691,7 +731,22 @@ function FornecedoresPage() {
                 </div>
               )}
               
-              <div className="flex justify-end pt-4 border-t border-white/10">
+              <div className="flex justify-between pt-4 border-t border-white/10">
+                <Button 
+                  onClick={handleLimparLogs}
+                  disabled={limpandoLogs}
+                  className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                >
+                  {limpandoLogs ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Limpando...
+                    </>
+                  ) : (
+                    'LIMPAR LOG'
+                  )}
+                </Button>
+                
                 <Button 
                   onClick={() => setSoapLogsModalOpen(false)}
                   className="bg-purple-600 hover:bg-purple-700"

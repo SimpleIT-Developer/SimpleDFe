@@ -1418,6 +1418,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para limpar logs SOAP de debug
+  app.delete("/api/fornecedores/soap-logs/:cnpj", authenticateToken, async (req: any, res) => {
+    try {
+      const { cnpj } = req.params;
+      
+      if (!cnpj) {
+        return res.status(400).json({ message: "CNPJ é obrigatório" });
+      }
+
+      // Remove formatação do CNPJ para busca
+      const cleanCNPJ = cnpj.replace(/[^\d]/g, '');
+      
+      // Limpar logs SOAP para este CNPJ
+      const cleared = ERPService.clearSoapLogs(cleanCNPJ);
+
+      res.json({
+        success: true,
+        message: cleared ? "Logs SOAP limpos com sucesso" : "Nenhum log encontrado para limpar",
+        cnpj: cleanCNPJ
+      });
+
+    } catch (error) {
+      console.error('[SOAP-LOGS] Erro ao limpar logs:', error);
+      res.status(500).json({
+        success: false,
+        message: `Erro ao limpar logs SOAP: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+      });
+    }
+  });
+
   // Rota para download em lote de XMLs da NFe
   app.post('/api/nfe-bulk-download-xml', authenticateToken, async (req: any, res) => {
     try {

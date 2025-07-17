@@ -125,7 +125,7 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
-- July 17, 2025: Sistema de pré-cadastro no ERP implementado na tela de Fornecedores
+- July 17, 2025: Sistema de pré-cadastro no ERP implementado e funcional na tela de Fornecedores
   - Criado serviço CNPJService para consulta à API ReceitaWS (www.receitaws.com.br)
   - Criado serviço ERPService para comunicação SOAP com sistema ERP TOTVS
   - Arquivo de configuração server/config/erp-config.ts para manutenção fácil de endpoints e credenciais
@@ -140,6 +140,9 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
   - **Formatação correta**: CNPJ formatado, datas ISO (2023-09-08T00:00:00), CEP com hífen
   - **Rota de debug**: /api/fornecedores/soap-logs/:cnpj para acesso aos logs SOAP
   - **Mensagens aprimoradas**: sucesso mostra código ERP obtido (ex: "Código do fornecedor: 09989435")
+  - **Headers SOAP corretos**: usando headers idênticos ao SOAPUI para garantir status 200
+  - **Botão LIMPAR LOG**: no popup de logs SOAP para excluir histórico e gerar novos logs
+  - **Rota DELETE**: /api/fornecedores/soap-logs/:cnpj para limpar logs de um CNPJ específico
 - July 7, 2025: Adicionado botão "Abrir Ticket" na tela de usuários
   - Novo botão após "Ver Atualizações" que direciona para portal de suporte
   - Abre em nova aba: https://simpleitsolucoes.atlassian.net/servicedesk/customer/portal/8/user/login?destination=portal%2F8
