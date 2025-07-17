@@ -45,12 +45,12 @@ export class ERPService {
         .replace(/'/g, '&#39;');
     };
     
-    return `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tot="http://www.totvs.com/">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <tot:SaveRecord>
-         <tot:DataServerName>FinCFODataBr</tot:DataServerName>
-         <tot:XML><![CDATA[<FinCFOBR >
+    return `<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.totvs.com/">
+   <s:Header/>
+   <s:Body>
+      <SaveRecord>
+         <DataServerName>FinCFODataBr</DataServerName>
+         <XML><![CDATA[<FinCFOBR>
   <FCFO>
     <CODEXTERNO>00000000</CODEXTERNO>
     <CODCOLIGADA>${ERP_CONFIG.DEFAULTS.CODCOLIGADA}</CODCOLIGADA>
@@ -126,11 +126,11 @@ export class ERPService {
     <CODCFO>-1</CODCFO>
     <NAOUSARCALCSIMPIRPF>${ERP_CONFIG.DEFAULTS.NAOUSARCALCSIMPIRPF}</NAOUSARCALCSIMPIRPF>
   </FCFOCOMPL>
-</FinCFOBR>]]></tot:XML>
-         <tot:Contexto>CODCOLIGADA=${ERP_CONFIG.DEFAULTS.CODCOLIGADA};CODUSUARIO='${ERP_CONFIG.AUTH.USERNAME}';CODSISTEMA=F</tot:Contexto>
-      </tot:SaveRecord>
-   </soapenv:Body>
-</soapenv:Envelope>`;
+</FinCFOBR>]]></XML>
+         <Contexto>CODCOLIGADA=${ERP_CONFIG.DEFAULTS.CODCOLIGADA};CODUSUARIO='${ERP_CONFIG.AUTH.USERNAME}';CODSISTEMA=F</Contexto>
+      </SaveRecord>
+   </s:Body>
+</s:Envelope>`;
   }
 
   static async realizarPreCadastro(cnpjData: CNPJData): Promise<{ success: boolean; message: string; erpCode?: string }> {
