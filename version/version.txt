@@ -1,3 +1,8 @@
+Data: 17/07/2025
+Ticket: #
+Tipo: ROADMAP
+Descrição: Pré inclusão de Fornecedor no ERP pela tela de Fornecedores com dados da Receita Federal.
+
 Data: 15/07/2025
 Ticket: #SDFE-9
 Tipo: Bug
