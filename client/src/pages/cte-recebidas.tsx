@@ -10,7 +10,26 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronUp, ChevronDown, Download, Eye, Search, Filter, FileDown, Upload, CheckCircle2, XCircle } from "lucide-react";
+import { 
+  Search, 
+  Download, 
+  RefreshCw, 
+  ChevronLeft, 
+  ChevronRight, 
+  ChevronsLeft, 
+  ChevronsRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Filter,
+  Upload,
+  CheckSquare,
+  Square,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Eye
+} from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
 import type { CTeRecebida, CTeResponse, EventoCTe } from "@shared/schema";
 
@@ -272,62 +291,112 @@ export default function CTeRecebidasPage() {
     });
   };
 
+  const handleRefreshCTe = () => {
+    queryClient.invalidateQueries({ queryKey: ["cte-recebidas"] });
+    toast({
+      title: "CTe Atualizadas",
+      description: "Dados das CTe recebidas atualizados com sucesso!",
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedRows(new Set());
+    setSelectAll(false);
+  };
+
+  const getSortIcon = (column: keyof CTeRecebida) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="w-4 h-4" />;
+    }
+    return sortOrder === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />;
+  };
+
+  // Limpar seleção quando os dados mudarem (filtros, paginação, etc.)
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    clearSelection();
+  };
+
   return (
     <Layout currentPage="CTe Recebidas">
       <TooltipProvider>
         <div className="space-y-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-white">CTe Recebidas</h1>
-            <div className="flex gap-2">
-              {selectedRows.size > 0 && (
-                <Button 
-                  onClick={handleBaixarXMLLote}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download XML ({selectedRows.size})
-                </Button>
-              )}
-              <Button 
-                onClick={handleImportarDocumentos}
-                disabled={isImporting}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {isImporting ? "Importando..." : "Importar CTe"}
-              </Button>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-gray-400 text-sm">
+              Gerencie os conhecimentos de transporte eletrônicos recebidos
+            </p>
           </div>
-
-          {/* Filters */}
-          <Card className="glassmorphism border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Filter className="w-5 h-5" />
-                Filtros
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Buscar</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Número, emitente, destinatário..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                    />
-                  </div>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="text-primary">
+              {total} {total === 1 ? "CTe" : "CTes"}
+            </Badge>
+            
+            {/* Ações em Lote - só aparecem quando há seleções */}
+            {selectedRows.size > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-500/20 rounded-md border border-blue-500/30">
+                <span className="text-blue-400 text-sm font-medium">
+                  {selectedRows.size} selecionada{selectedRows.size > 1 ? 's' : ''}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleBaixarXMLLote}
+                    className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20 h-7"
+                    title="Download XML em lote"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    XML
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={clearSelection}
+                    className="border-gray-500/30 text-gray-400 hover:bg-gray-500/20 h-7"
+                    title="Limpar seleção"
+                  >
+                    <Square className="w-3 h-3" />
+                  </Button>
                 </div>
+              </div>
+            )}
+            
+            <Button
+              onClick={handleRefreshCTe}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Atualizar CTe
+            </Button>
+          </div>
+        </div>
 
+        {/* Search and Filters */}
+        <Card className="glassmorphism border-white/20">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              {/* Search Bar */}
+              <div className="flex items-center space-x-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Buscar em todos os campos..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10 bg-white/10 border-white/20 text-white placeholder-gray-400"
+                  />
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Status</label>
+                  <label className="text-sm font-medium text-gray-300">Status Integração</label>
                   <Select value={status} onValueChange={(value: "all" | "integrated" | "not_integrated") => setStatus(value)}>
                     <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                      <SelectValue />
+                      <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
@@ -340,20 +409,20 @@ export default function CTeRecebidasPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-300">Empresa</label>
                   <Input
-                    placeholder="Nome da empresa"
+                    placeholder="Filtrar por empresa"
                     value={empresa}
                     onChange={(e) => setEmpresa(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    className="bg-white/10 border-white/20 text-white placeholder-gray-400"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-300">Fornecedor</label>
                   <Input
-                    placeholder="Nome do fornecedor"
+                    placeholder="Filtrar por fornecedor"
                     value={fornecedor}
                     onChange={(e) => setFornecedor(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    className="bg-white/10 border-white/20 text-white placeholder-gray-400"
                   />
                 </div>
 
@@ -375,8 +444,29 @@ export default function CTeRecebidasPage() {
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Filter Actions */}
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearch("");
+                    setStatus("all");
+                    setEmpresa("");
+                    setFornecedor("");
+                    setDataInicio("");
+                    setDataFim("");
+                    setPage(1);
+                  }}
+                  className="text-gray-400 hover:text-white hover:bg-white/10"
+                >
+                  Limpar filtros
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
           {/* CTe Table */}
           <Card className="glassmorphism border-white/20">
@@ -584,46 +674,51 @@ export default function CTeRecebidasPage() {
             </CardContent>
           </Card>
 
-          {/* Dialog de Eventos */}
-          <Dialog open={eventosDialogOpen} onOpenChange={setEventosDialogOpen}>
-            <DialogContent className="max-w-4xl bg-gray-900 border-gray-700">
-              <DialogHeader>
-                <DialogTitle className="text-white">Eventos da CTe</DialogTitle>
-                <DialogDescription className="text-gray-400">
-                  Lista de eventos relacionados à CTe selecionada
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="max-h-96 overflow-y-auto">
-                {eventosData.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400">Nenhum evento encontrado para esta CTe</p>
-                  </div>
-                ) : (
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-700">
-                        <th className="text-left p-3 text-white font-medium">Código</th>
-                        <th className="text-left p-3 text-white font-medium">Descrição</th>
-                        <th className="text-left p-3 text-white font-medium">Data</th>
-                        <th className="text-left p-3 text-white font-medium">Protocolo</th>
+        {/* Dialog de Eventos */}
+        <Dialog open={eventosDialogOpen} onOpenChange={setEventosDialogOpen}>
+          <DialogContent className="max-w-4xl bg-gray-900 border-gray-700">
+            <DialogHeader>
+              <DialogTitle className="text-white">Eventos da CTe</DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Lista de eventos relacionados à CTe selecionada
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="max-h-96 overflow-y-auto">
+              {loadingEventos ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-gray-400">Carregando eventos...</p>
+                </div>
+              ) : eventosData.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-400">Nenhum evento encontrado para esta CTe</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="text-left p-3 text-white font-medium">Código</th>
+                      <th className="text-left p-3 text-white font-medium">Descrição</th>
+                      <th className="text-left p-3 text-white font-medium">Data</th>
+                      <th className="text-left p-3 text-white font-medium">Protocolo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {eventosData.map((evento) => (
+                      <tr key={evento.cte_evento_id} className="border-b border-gray-800">
+                        <td className="p-3 text-white">{evento.cte_evento_code_evento}</td>
+                        <td className="p-3 text-white">{evento.cte_evento_desc_evento}</td>
+                        <td className="p-3 text-white">{formatDate(evento.cte_evento_data)}</td>
+                        <td className="p-3 text-white">{evento.cte_evento_prot || '-'}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {eventosData.map((evento) => (
-                        <tr key={evento.cte_evento_id} className="border-b border-gray-800">
-                          <td className="p-3 text-white">{evento.cte_evento_code_evento}</td>
-                          <td className="p-3 text-white">{evento.cte_evento_desc_evento}</td>
-                          <td className="p-3 text-white">{formatDate(evento.cte_evento_data)}</td>
-                          <td className="p-3 text-white">{evento.cte_evento_prot || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
         </div>
       </TooltipProvider>
     </Layout>
