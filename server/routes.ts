@@ -2191,6 +2191,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para download de XML da CTe via API externa
+  app.get("/api/cte-download/:cte_id", authenticateToken, async (req: any, res) => {
+    try {
+      const { cte_id } = req.params;
+      const apiUrl = `https://robolbv.simpledfe.com.br/api/cte_download_api.php?cte_id=${cte_id}`;
+      
+      // Fazer a chamada para a API externa
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API externa: ${response.status}`);
+      }
+      
+      // Extrair o nome do arquivo do cabeçalho Content-Disposition
+      const contentDisposition = response.headers.get('content-disposition');
+      let filename = `cte_${cte_id}.xml`; // fallback
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+      
+      // Encaminhar o arquivo para o cliente
+      const buffer = await response.arrayBuffer();
+      
+      res.setHeader('Content-Type', response.headers.get('content-type') || 'application/xml');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      res.send(Buffer.from(buffer));
+      
+    } catch (error) {
+      console.error("Erro no download de XML da CTe:", error);
+      res.status(500).json({ message: "Erro ao baixar XML da CTe" });
+    }
+  });
+
   // Rota para buscar eventos de uma CTe
   app.get("/api/cte-eventos/:cte_id", authenticateToken, async (req: any, res) => {
     try {

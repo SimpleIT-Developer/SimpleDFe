@@ -182,34 +182,48 @@ export default function CTeRecebidasPage() {
   // Função para baixar XML
   const handleBaixarXML = async (cte: CTeRecebida) => {
     try {
-      const response = await fetch(`https://robolbv.simpledfe.com.br/api/cte_download_api.php?cte_id=${cte.cte_id}`, {
+      // Chama a API através do nosso backend para evitar problemas de CORS
+      const response = await fetch(`/api/cte-download/${cte.cte_id}`, {
         method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
       });
 
       if (!response.ok) {
         throw new Error('Erro ao baixar XML da CTe');
       }
 
+      // Extrair o nome do arquivo do cabeçalho Content-Disposition
+      const contentDisposition = response.headers.get('content-disposition');
+      let filename = `cte_${cte.cte_id}.xml`; // fallback
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Baixa o arquivo
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `CTe_${cte.cte_numero}.xml`;
-      document.body.appendChild(a);
-      a.click();
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
 
       toast({
-        title: "XML baixado com sucesso",
-        description: `XML da CTe ${cte.cte_numero} foi baixado`,
+        title: "Download Concluído",
+        description: `XML da CTe ${cte.cte_numero} baixado com sucesso!`,
       });
     } catch (error) {
-      console.error('Erro ao baixar XML:', error);
       toast({
-        title: "Erro ao baixar XML",
-        description: "Ocorreu um erro ao tentar baixar o XML da CTe",
+        title: "Erro no Download",
+        description: "Não foi possível baixar o XML da CTe. Verifique se o serviço está disponível.",
         variant: "destructive",
       });
     }
