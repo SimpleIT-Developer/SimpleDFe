@@ -238,6 +238,59 @@ export interface CNPJAtivo {
   status: string;
 }
 
+// CTe Recebidas interfaces
+export interface CTeRecebida {
+  cte_id: number;
+  cte_numero: string;
+  cte_destinatario_nome: string;
+  cte_emitente_nome: string;
+  cte_emitente_doc: string;
+  cte_data_emissao: string;
+  cte_valor: number;
+  cte_status_integracao: number;
+  cte_id_integracao: string | null;
+  cte_codcfo: string | null;
+  cte_id_company?: number;
+  cte_status: number;
+  cte_serie: string | null;
+  cte_chave_acesso?: string;
+  empresa_nome?: string;
+  company_cpf_cnpj?: string;
+  has_evento?: number;
+}
+
+export interface CTeFilters {
+  search?: string;
+  status?: 'all' | 'integrated' | 'not_integrated';
+  empresa?: string;
+  fornecedor?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: keyof CTeRecebida;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface CTeResponse {
+  ctes: CTeRecebida[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
+// Eventos CTe interfaces
+export interface EventoCTe {
+  cte_evento_id: number;
+  cte_evento_id_company: number;
+  cte_evento_chave_acesso: string;
+  cte_evento_code_evento: string;
+  cte_evento_desc_evento: string;
+  cte_evento_data: string;
+  cte_evento_prot: string;
+}
+
 // Fornecedores interfaces
 export interface Fornecedor {
   id: number;

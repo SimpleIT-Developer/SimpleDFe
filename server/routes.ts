@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { loginSchema, registerSchema, users, type Company, type CompanyFilters, type CompanyResponse, type NFeRecebida, type NFeFilters, type NFeResponse, type NFSeRecebida, type NFSeResponse, type Usuario, type UsuarioResponse, type FornecedorResponse } from "@shared/schema";
+import { loginSchema, registerSchema, users, type Company, type CompanyFilters, type CompanyResponse, type NFeRecebida, type NFeFilters, type NFeResponse, type NFSeRecebida, type NFSeResponse, type CTeRecebida, type CTeFilters, type CTeResponse, type EventoCTe, type Usuario, type UsuarioResponse, type FornecedorResponse } from "@shared/schema";
 import { z } from "zod";
 import { mysqlPool, testMysqlConnection } from "./mysql-config";
 import { db } from "./db";
@@ -2030,6 +2030,207 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Eventos fetch error:", error);
       res.status(500).json({ message: "Erro ao buscar eventos da NFe" });
+    }
+  });
+
+  // CTe Recebidas endpoints
+  app.get("/api/cte-recebidas", authenticateToken, async (req: any, res) => {
+    try {
+      console.log("CTe Recebidas - Starting request");
+      const {
+        search = "",
+        status = "all",
+        empresa = "",
+        fornecedor = "",
+        dataInicio = "",
+        dataFim = "",
+        page = "1",
+        limit = "10",
+        sortBy = "cte_numero",
+        sortOrder = "desc"
+      } = req.query;
+      
+      console.log("CTe Recebidas - Query params:", { search, status, empresa, fornecedor, dataInicio, dataFim, page, limit, sortBy, sortOrder });
+
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      
+      // Build search conditions
+      let searchConditions: string[] = [];
+      const searchParams: any[] = [];
+      
+      if (search) {
+        searchConditions.push(`(
+          c.cte_numero LIKE ? OR 
+          c.cte_destinatario_nome LIKE ? OR 
+          c.cte_emitente_nome LIKE ? OR 
+          c.cte_emitente_doc LIKE ? OR 
+          c.cte_id_integracao LIKE ? OR
+          co.company_name LIKE ?
+        )`);
+        const searchTerm = `%${search}%`;
+        searchParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+      }
+
+      if (status !== "all") {
+        if (status === "integrated") {
+          searchConditions.push("c.cte_status_integracao = 1");
+        } else if (status === "not_integrated") {
+          searchConditions.push("c.cte_status_integracao = 0");
+        }
+      }
+
+      if (empresa) {
+        searchConditions.push("(c.cte_destinatario_nome LIKE ? OR co.company_name LIKE ?)");
+        searchParams.push(`%${empresa}%`, `%${empresa}%`);
+      }
+
+      if (fornecedor) {
+        searchConditions.push("c.cte_emitente_nome LIKE ?");
+        searchParams.push(`%${fornecedor}%`);
+      }
+
+      if (dataInicio) {
+        searchConditions.push("DATE(c.cte_data_emissao) >= ?");
+        searchParams.push(dataInicio);
+      }
+
+      if (dataFim) {
+        searchConditions.push("DATE(c.cte_data_emissao) <= ?");
+        searchParams.push(dataFim);
+      }
+
+      const whereClause = searchConditions.length > 0 ? `WHERE ${searchConditions.join(" AND ")}` : "";
+
+      // Count total records
+      const countQuery = `SELECT COUNT(*) as total FROM cte c LEFT JOIN company co ON c.cte_id_company = co.company_id ${whereClause}`;
+      const [countResult] = await mysqlPool.execute(countQuery, searchParams) as any;
+      const total = countResult[0].total;
+
+      // Get CTes with pagination and sorting + company relationship + eventos info
+      const dataQuery = `
+        SELECT 
+          c.cte_id,
+          c.cte_numero,
+          c.cte_destinatario_nome,
+          c.cte_emitente_nome,
+          c.cte_emitente_doc,
+          c.cte_data_emissao,
+          c.cte_valor,
+          c.cte_status_integracao,
+          c.cte_id_integracao,
+          c.cte_codcfo,
+          c.cte_id_company,
+          c.cte_status,
+          c.cte_serie,
+          c.cte_chave_acesso,
+          COALESCE(co.company_name, c.cte_destinatario_nome) as empresa_nome,
+          co.company_cpf_cnpj,
+          CASE 
+            WHEN e.cte_evento_id IS NOT NULL THEN 1 
+            ELSE 0 
+          END as has_evento
+        FROM cte c
+        LEFT JOIN company co ON c.cte_id_company = co.company_id
+        LEFT JOIN cte_evento e ON c.cte_chave_acesso = e.cte_evento_chave_acesso AND c.cte_id_company = e.cte_evento_id_company
+        ${whereClause}
+        GROUP BY c.cte_id
+        ORDER BY ${sortBy.startsWith('cte_') ? 'c.' + sortBy : sortBy} ${sortOrder.toUpperCase()}
+        LIMIT ${parseInt(limit)} OFFSET ${offset}
+      `;
+
+      const [ctes] = await mysqlPool.execute(dataQuery, searchParams) as any;
+
+      const totalPages = Math.ceil(total / parseInt(limit));
+
+      const response: CTeResponse = {
+        ctes,
+        total,
+        page: parseInt(page),
+        totalPages,
+        limit: parseInt(limit)
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error("CTe fetch error:", error);
+      res.status(500).json({ message: "Erro ao buscar CTe recebidas" });
+    }
+  });
+
+  // Get single CTe
+  app.get("/api/cte-recebidas/:numero", authenticateToken, async (req: any, res) => {
+    try {
+      const { numero } = req.params;
+      
+      const query = `
+        SELECT 
+          cte_numero,
+          cte_destinatario_nome,
+          cte_emitente_nome,
+          cte_emitente_doc,
+          cte_data_emissao,
+          cte_valor,
+          cte_status_integracao,
+          cte_id_integracao,
+          cte_codcfo
+        FROM cte 
+        WHERE cte_numero = ?
+      `;
+
+      const [ctes] = await mysqlPool.execute(query, [numero]) as any;
+      
+      if (ctes.length === 0) {
+        return res.status(404).json({ message: "CTe não encontrada" });
+      }
+
+      res.json({ cte: ctes[0] });
+    } catch (error) {
+      console.error("CTe fetch error:", error);
+      res.status(500).json({ message: "Erro ao buscar CTe" });
+    }
+  });
+
+  // Rota para buscar eventos de uma CTe
+  app.get("/api/cte-eventos/:cte_id", authenticateToken, async (req: any, res) => {
+    try {
+      const { cte_id } = req.params;
+      
+      // Primeiro buscar a CTe para obter cte_id_company e cte_chave_acesso
+      const cteQuery = `
+        SELECT cte_id_company, cte_chave_acesso 
+        FROM cte 
+        WHERE cte_id = ?
+      `;
+      
+      const [cteResult] = await mysqlPool.execute(cteQuery, [cte_id]) as any;
+      
+      if (cteResult.length === 0) {
+        return res.status(404).json({ message: "CTe não encontrada" });
+      }
+      
+      const { cte_id_company, cte_chave_acesso } = cteResult[0];
+      
+      // Buscar eventos relacionados
+      const eventosQuery = `
+        SELECT 
+          cte_evento_id,
+          cte_evento_id_company,
+          cte_evento_chave_acesso,
+          cte_evento_code_evento,
+          cte_evento_desc_evento,
+          cte_evento_data,
+          cte_evento_prot
+        FROM cte_evento 
+        WHERE cte_evento_id_company = ? AND cte_evento_chave_acesso = ?
+        ORDER BY cte_evento_data DESC
+      `;
+      
+      const [eventos] = await mysqlPool.execute(eventosQuery, [cte_id_company, cte_chave_acesso]) as any;
+      
+      res.json({ eventos });
+    } catch (error) {
+      console.error("CTe Eventos fetch error:", error);
+      res.status(500).json({ message: "Erro ao buscar eventos da CTe" });
     }
   });
 
