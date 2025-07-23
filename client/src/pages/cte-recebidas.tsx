@@ -301,11 +301,48 @@ export default function CTeRecebidasPage() {
       return;
     }
 
-    const selectedIds = Array.from(selectedRows);
-    toast({
-      title: "Download em lote iniciado",
-      description: `Iniciando download de ${selectedIds.length} XMLs de CTe`,
-    });
+    try {
+      const selectedIds = Array.from(selectedRows);
+      
+      const response = await fetch('/api/cte-bulk-download-xml', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({ cteIds: selectedIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro no download em lote');
+      }
+
+      // Criar blob do ZIP e fazer download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'xml_cte.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download Concluído",
+        description: `Download de ${selectedIds.length} XMLs de CTe concluído com sucesso!`,
+      });
+
+      // Limpar seleção após download
+      clearSelection();
+    } catch (error) {
+      console.error('Erro no download em lote:', error);
+      toast({
+        title: "Erro no Download",
+        description: "Não foi possível fazer o download dos XMLs. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRefreshCTe = () => {
