@@ -18,6 +18,8 @@ import {
   ChevronRight, 
   ChevronsLeft, 
   ChevronsRight,
+  ChevronUp,
+  ChevronDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -28,7 +30,8 @@ import {
   FileText,
   CheckCircle2,
   XCircle,
-  Eye
+  Eye,
+  Clock
 } from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
 import type { CTeRecebida, CTeResponse, EventoCTe } from "@shared/schema";
