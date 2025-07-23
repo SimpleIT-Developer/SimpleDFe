@@ -593,46 +593,33 @@ export default function CTeRecebidasPage() {
                               </TooltipContent>
                             </Tooltip>
                           </td>
-                          <td className="p-3 text-white truncate">{cte.cte_numero || '-'}</td>
-                          <td className="p-3 text-white truncate">{cte.cte_emitente_nome || '-'}</td>
-                          <td className="p-3 text-white truncate">{cte.cte_destinatario_nome || '-'}</td>
-                          <td className="p-3 text-white">{formatDate(cte.cte_data_emissao)}</td>
-                          <td className="p-3 text-white">{formatCurrency(cte.cte_valor)}</td>
-                          <td className="p-3">{getStatusBadge(cte)}</td>
-                          <td className="p-3">
-                            <div className="flex gap-2">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleBaixarXML(cte)}
-                                    className="border-blue-500/50 hover:bg-blue-500/20 text-blue-300"
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Baixar XML</p>
-                                </TooltipContent>
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleVisualizarEventos(cte)}
-                                    disabled={loadingEventos}
-                                    className="border-green-500/50 hover:bg-green-500/20 text-green-300"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Visualizar Eventos</p>
-                                </TooltipContent>
-                              </Tooltip>
+                          <td className="py-2 px-2 text-white font-mono text-sm truncate">{cte.cte_numero || '-'}</td>
+                          <td className="py-2 px-2 text-white text-sm truncate">{cte.cte_emitente_nome || '-'}</td>
+                          <td className="py-2 px-2 text-gray-300 text-sm truncate">{cte.cte_destinatario_nome || '-'}</td>
+                          <td className="py-2 px-2 text-gray-300 text-sm">{formatDate(cte.cte_data_emissao)}</td>
+                          <td className="py-2 px-2 text-gray-300 font-mono text-sm">{formatCurrency(cte.cte_valor)}</td>
+                          <td className="py-2 px-2">{getStatusBadge(cte)}</td>
+                          <td className="py-2 px-2">
+                            <div className="flex space-x-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleBaixarXML(cte)}
+                                className="border-blue-500/30 text-blue-400 hover:bg-blue-500/20 w-7 h-7 p-0"
+                                title="Baixar XML"
+                              >
+                                <Download className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleVisualizarEventos(cte)}
+                                disabled={loadingEventos}
+                                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/20 w-7 h-7 p-0"
+                                title="Visualizar Eventos"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </Button>
                             </div>
                           </td>
                         </tr>
