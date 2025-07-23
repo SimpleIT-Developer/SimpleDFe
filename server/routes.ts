@@ -18,6 +18,7 @@ import multer from 'multer';
 import * as XLSX from 'xlsx';
 import { CNPJService } from "./services/cnpj-service";
 import { ERPService } from "./services/erp-service";
+import { ERP_CONFIG } from "./config/erp-config";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 

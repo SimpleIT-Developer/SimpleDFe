@@ -58,7 +58,10 @@ export default function RegisterPage() {
       });
       return;
     }
-    registerMutation.mutate(data);
+    registerMutation.mutate({
+      ...data,
+      type: data.type || "user"
+    });
   };
 
   return (

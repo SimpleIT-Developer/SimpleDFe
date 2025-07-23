@@ -19,8 +19,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
   name: true,
-  type: true,
-  status: true,
+}).extend({
+  type: z.string().optional(),
+  status: z.number().optional(),
 });
 
 export const loginSchema = z.object({
@@ -31,6 +32,7 @@ export const loginSchema = z.object({
 export const registerSchema = insertUserSchema.extend({
   password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
   confirmPassword: z.string(),
+  type: z.string().default("user"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Senhas não coincidem",
   path: ["confirmPassword"],
