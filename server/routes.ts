@@ -2127,12 +2127,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           COALESCE(co.company_name, c.cte_destinatario_nome) as empresa_nome,
           co.company_cpf_cnpj,
           CASE 
-            WHEN e.cte_evento_id IS NOT NULL THEN 1 
+            WHEN e.cte_id IS NOT NULL THEN 1 
             ELSE 0 
           END as has_evento
         FROM cte c
         LEFT JOIN company co ON c.cte_id_company = co.company_id
-        LEFT JOIN cte_evento e ON c.cte_chave_acesso = e.cte_evento_chave_acesso AND c.cte_id_company = e.cte_evento_id_company
+        LEFT JOIN cte_evento e ON c.cte_chave_acesso = e.cte_chave_acesso AND c.cte_id_company = e.cte_id_company
         ${whereClause}
         GROUP BY c.cte_id
         ORDER BY ${sortBy.startsWith('cte_') ? 'c.' + sortBy : sortBy} ${sortOrder.toUpperCase()}
@@ -2214,16 +2214,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Buscar eventos relacionados
       const eventosQuery = `
         SELECT 
-          cte_evento_id,
-          cte_evento_id_company,
-          cte_evento_chave_acesso,
-          cte_evento_code_evento,
-          cte_evento_desc_evento,
-          cte_evento_data,
-          cte_evento_prot
+          cte_id,
+          cte_id_company,
+          cte_chave_acesso,
+          cte_code_evento,
+          cte_desc_evento,
+          cte_data,
+          cte_prot
         FROM cte_evento 
-        WHERE cte_evento_id_company = ? AND cte_evento_chave_acesso = ?
-        ORDER BY cte_evento_data DESC
+        WHERE cte_id_company = ? AND cte_chave_acesso = ?
+        ORDER BY cte_data DESC
       `;
       
       const [eventos] = await mysqlPool.execute(eventosQuery, [cte_id_company, cte_chave_acesso]) as any;
