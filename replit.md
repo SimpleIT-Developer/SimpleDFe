@@ -130,13 +130,16 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
   - Implementada página client/src/pages/cte-recebidas.tsx baseada no padrão NFe Recebidas
   - Criadas rotas de API /api/cte-recebidas com filtros e paginação
   - Implementada rota /api/cte-eventos/:cte_id para visualização de eventos
-  - Relacionamento entre tabelas cte e cte_evento usando cte_chave_acesso e cte_id_company
+  - Relacionamento entre tabelas cte e cte_evento corrigido com nomes corretos das colunas:
+    * cte: cte_chave_acesso, cte_id_company
+    * cte_evento: cte_evento_chave_acesso, cte_evento_id_empresa
   - Download de XML via URL https://robolbv.simpledfe.com.br/api/cte_download_api.php?cte_id={cte_id}
   - Menu "CTe Recebidas" adicionado entre NFe e NFSe no layout
   - Funcionalidades: filtros por data, empresa, fornecedor, status de integração
   - Grid com seleção em lote, ordenação, visualização de eventos, download XML
   - Status do documento baseado nos campos cte_serie, cte_status e presença de eventos
   - Rota registrada em App.tsx para navegação completa
+  - Sistema funcionando completamente com 658 CTe registrados na base de dados
 - July 17, 2025: Sistema de pré-cadastro no ERP implementado e funcional na tela de Fornecedores
   - Criado serviço CNPJService para consulta à API ReceitaWS (www.receitaws.com.br)
   - Criado serviço ERPService para comunicação SOAP com sistema ERP TOTVS
