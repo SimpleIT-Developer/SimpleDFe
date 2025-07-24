@@ -2367,12 +2367,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error(`Erro na API externa: ${response.status}`);
       }
 
+      // Verificar se a resposta é realmente um ZIP
+      const contentType = response.headers.get('content-type');
+      console.log('Content-Type da resposta:', contentType);
+      
       // Configurar headers para download do ZIP
       res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', 'attachment; filename="dacte_cte.zip"');
       
       // Retornar o buffer da resposta
       const buffer = await response.arrayBuffer();
+      console.log('Tamanho do buffer recebido:', buffer.byteLength);
       res.send(Buffer.from(buffer));
       
     } catch (error) {
