@@ -2311,6 +2311,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para download em lote de DACTEs da CTe
+  app.post('/api/cte-bulk-download-dacte', authenticateToken, async (req: any, res) => {
+    try {
+      const { cteIds } = req.body;
+      
+      if (!cteIds || !Array.isArray(cteIds) || cteIds.length === 0) {
+        return res.status(400).json({ error: 'IDs das CTe são obrigatórios' });
+      }
+
+      const idsString = cteIds.join(',');
+      const apiUrl = `http://robolbv.simpledfe.com.br/api/baixar_dacte_lote.php?id=${idsString}`;
+      
+      console.log('Fazendo requisição para:', apiUrl);
+      
+      // Fazer requisição para a API externa
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Erro na API externa: ${response.status}`);
+      }
+
+      // Configurar headers para download do ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="dacte_cte.zip"');
+      
+      // Retornar o buffer da resposta
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+      
+    } catch (error) {
+      console.error('Erro no download em lote de DACTEs CTe:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
   // Rota para buscar eventos de uma CTe
   app.get("/api/cte-eventos/:cte_id", authenticateToken, async (req: any, res) => {
     try {

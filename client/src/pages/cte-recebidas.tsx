@@ -383,6 +383,60 @@ export default function CTeRecebidasPage() {
     }
   };
 
+  const handleBulkDownloadDACTE = async () => {
+    if (selectedRows.size === 0) {
+      toast({
+        title: "Nenhuma CTe selecionada",
+        description: "Selecione pelo menos uma CTe para download DACTE",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const cteIds = Array.from(selectedRows);
+      
+      const response = await fetch('/api/cte-bulk-download-dacte', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({ cteIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro no download');
+      }
+
+      // Criar blob para download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'dacte_cte.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download DACTE iniciado",
+        description: `Download de ${selectedRows.size} DACTE(s) CTe iniciado`,
+      });
+
+      // Limpar seleção após download
+      clearSelection();
+    } catch (error) {
+      console.error('Erro no download DACTE:', error);
+      toast({
+        title: "Erro no download",
+        description: "Erro ao iniciar download dos DACTEs",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleRefreshCTe = () => {
     queryClient.invalidateQueries({ queryKey: ["cte-recebidas"] });
     toast({
@@ -441,6 +495,16 @@ export default function CTeRecebidasPage() {
                   >
                     <Download className="w-3 h-3 mr-1" />
                     XML
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleBulkDownloadDACTE}
+                    className="border-green-500/30 text-green-400 hover:bg-green-500/20 h-7"
+                    title="Download DACTE em lote"
+                  >
+                    <FileText className="w-3 h-3 mr-1" />
+                    DACTE
                   </Button>
                   <Button
                     size="sm"

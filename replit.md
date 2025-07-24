@@ -125,6 +125,19 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
 - Backup and recovery procedures
 
 ## Changelog
+- July 24, 2025: Sistema de impressão DACTE implementado completo
+  - Criado utilitário dacte-utils.ts seguindo padrão DANFE com generateDACTE()
+  - Implementado script PHP dacte_generator.php usando biblioteca sped-da
+  - Adicionada rota /api/cte-dacte/:cte_id para geração individual de DACTE
+  - Função handleImprimirDACTE criada no frontend seguindo padrão NFe
+  - Botão "Imprimir DACTE" verde adicionado na coluna de ações da grid
+  - Implementada rota /api/cte-bulk-download-dacte para download em lote
+  - Função handleBulkDownloadDACTE criada para múltiplos DACTEs
+  - Botão "DACTE" verde adicionado nas ações em lote quando há seleções
+  - API externa http://robolbv.simpledfe.com.br/api/baixar_dacte_lote.php integrada
+  - Sistema gera ZIP dacte_cte.zip com múltiplos PDFs automaticamente
+  - Download individual: XML → Backend → PHP → PDF → Navegador
+  - Download lote: IDs → Backend → API Externa → ZIP → Download
 - July 23, 2025: Sistema CTe Recebidas implementado completo
   - Criadas interfaces CTeRecebida, CTeFilters, CTeResponse e EventoCTe no schema
   - Implementada página client/src/pages/cte-recebidas.tsx baseada no padrão NFe Recebidas
