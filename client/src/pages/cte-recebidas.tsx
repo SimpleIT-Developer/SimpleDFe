@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { 
   Search, 
   Download, 
-  RefreshCw, 
+  RefreshCw,
+  Printer,
   ChevronLeft, 
   ChevronRight, 
   ChevronsLeft, 
@@ -345,6 +346,43 @@ export default function CTeRecebidasPage() {
     }
   };
 
+  const handleImprimirDACTE = async (cte: CTeRecebida) => {
+    try {
+      // Fazer a requisição com autenticação
+      const response = await fetch(`/api/cte-dacte/${cte.cte_id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar DACTE');
+      }
+
+      // Criar blob do PDF e abrir em nova guia
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      
+      // Limpar URL após um breve delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+      
+      toast({
+        title: "DACTE Aberto",
+        description: `DACTE da CTe ${cte.cte_numero} aberto em nova guia`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao Abrir DACTE",
+        description: "Não foi possível abrir o DACTE. Verifique se o serviço está disponível.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleRefreshCTe = () => {
     queryClient.invalidateQueries({ queryKey: ["cte-recebidas"] });
     toast({
@@ -660,6 +698,15 @@ export default function CTeRecebidasPage() {
                                 title="Baixar XML"
                               >
                                 <Download className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleImprimirDACTE(cte)}
+                                className="border-green-500/30 text-green-400 hover:bg-green-500/20 w-7 h-7 p-0"
+                                title="Imprimir DACTE"
+                              >
+                                <Printer className="w-3 h-3" />
                               </Button>
                               <Button
                                 size="sm"

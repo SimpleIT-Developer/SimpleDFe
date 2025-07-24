@@ -2264,6 +2264,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para gerar e exibir DACTE da CTe
+  app.get("/api/cte-dacte/:cte_id", authenticateToken, async (req: any, res) => {
+    try {
+      const { cte_id } = req.params;
+      
+      // Primeiro, baixar o XML da API externa
+      const apiUrl = `https://robolbv.simpledfe.com.br/api/cte_download_api.php?cte_id=${cte_id}`;
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Erro ao baixar XML da API externa: ${response.status}`);
+      }
+      
+      const xmlContent = await response.text();
+      
+      // Importar a função para gerar DACTE
+      const { generateDACTE } = await import('./dacte-utils');
+      
+      // Gerar o PDF do DACTE
+      const result = await generateDACTE(xmlContent);
+      
+      if (!result.success) {
+        throw new Error(`Erro ao gerar DACTE: ${result.error}`);
+      }
+      
+      // Ler o arquivo PDF gerado
+      const fs = await import('fs');
+      const pdfBuffer = fs.readFileSync(result.pdfPath!);
+      
+      // Definir headers para exibir o PDF no navegador
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="dacte_${cte_id}.pdf"`);
+      res.send(pdfBuffer);
+      
+      // Limpar o arquivo temporário
+      try {
+        fs.unlinkSync(result.pdfPath!);
+      } catch (cleanupError) {
+        console.warn('Erro ao limpar arquivo temporário:', cleanupError);
+      }
+      
+    } catch (error) {
+      console.error("Erro ao gerar DACTE:", error);
+      res.status(500).json({ message: "Erro ao gerar DACTE da CTe" });
+    }
+  });
+
   // Rota para buscar eventos de uma CTe
   app.get("/api/cte-eventos/:cte_id", authenticateToken, async (req: any, res) => {
     try {
