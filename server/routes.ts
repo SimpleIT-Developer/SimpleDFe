@@ -756,32 +756,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para criar usuário
   app.post("/api/usuarios", authenticateToken, async (req: any, res) => {
     try {
+      console.log("=== INÍCIO CREATE USER ===");
+      console.log("User type:", req.user.type);
+      console.log("Request body:", req.body);
+      
       const userType = req.user.type || 'user';
       
       // Apenas admins e system podem criar usuários
       if (userType !== 'admin' && userType !== 'system') {
+        console.log("Acesso negado - tipo de usuário:", userType);
         return res.status(403).json({ message: "Acesso negado" });
       }
 
       const { nome, email, password, tipo, ativo } = req.body;
+      console.log("Campos recebidos:", { nome, email, password: "***", tipo, ativo });
 
       if (!nome || !email || !password || !tipo) {
+        console.log("Campos obrigatórios faltando");
         return res.status(400).json({ message: "Todos os campos são obrigatórios" });
       }
 
       // Admins só podem criar users e admins
       if (userType === 'admin' && tipo === 'system') {
+        console.log("Admin tentando criar usuário system");
         return res.status(403).json({ message: "Admins não podem criar usuários do tipo system" });
       }
 
+      console.log("Verificando se email já existe:", email.toLowerCase());
       // Verificar se email já existe (case-insensitive)
       const existingUser = await storage.getUserByEmail(email.toLowerCase());
       if (existingUser) {
+        console.log("Email já existe:", existingUser.email);
         return res.status(400).json({ message: "Email já está em uso" });
       }
 
+      console.log("Gerando hash da senha...");
       const hashedPassword = await bcrypt.hash(password, 10);
       
+      console.log("Criando usuário no banco...");
       const newUser = await storage.createUser({
         username: nome,
         email: email.toLowerCase(),
@@ -790,6 +802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: tipo,
         status: ativo !== undefined ? ativo : 1
       });
+      console.log("Usuário criado com sucesso, ID:", newUser.id);
 
       // Buscar código do cliente no MySQL
       let codigoCliente = '';
