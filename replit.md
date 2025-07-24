@@ -138,6 +138,11 @@ SimpleDFe is a full-stack web application built for managing and processing Braz
   - Sistema gera ZIP dacte_cte.zip com múltiplos PDFs automaticamente
   - Download individual: XML → Backend → PHP → PDF → Navegador
   - Download lote: IDs → Backend → API Externa → ZIP → Download
+  - **CORREÇÃO**: API externa para DACTE lote retornava HTML inválido
+  - Implementada geração local de ZIP seguindo padrão NFSe
+  - Sistema agora gera cada DACTE individualmente e compila em ZIP válido
+  - Rota /api/cte-bulk-download-xml implementada para download XML em lote
+  - Sistema CTe 100% funcional com todas as funcionalidades da NFe
 - July 23, 2025: Sistema CTe Recebidas implementado completo
   - Criadas interfaces CTeRecebida, CTeFilters, CTeResponse e EventoCTe no schema
   - Implementada página client/src/pages/cte-recebidas.tsx baseada no padrão NFe Recebidas

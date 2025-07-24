@@ -2355,30 +2355,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'IDs das CTe são obrigatórios' });
       }
 
-      const idsString = cteIds.join(',');
-      const apiUrl = `http://robolbv.simpledfe.com.br/api/baixar_dacte_lote.php?id=${idsString}`;
-      
-      console.log('Fazendo requisição para:', apiUrl);
-      
-      // Fazer requisição para a API externa
-      const response = await fetch(apiUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Erro na API externa: ${response.status}`);
+      console.log('Download em lote DACTEs CTe - IDs:', cteIds);
+
+      const AdmZip = (await import('adm-zip')).default;
+      const zip = new AdmZip();
+      const { generateDACTE } = await import('./dacte-utils');
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // Gerar DACTE para cada CTe
+      for (const cteId of cteIds) {
+        try {
+          console.log(`Gerando DACTE para CTe ID: ${cteId}`);
+          
+          // Baixar o XML da API externa
+          const apiUrl = `https://robolbv.simpledfe.com.br/api/cte_download_api.php?cte_id=${cteId}`;
+          const response = await fetch(apiUrl);
+          
+          if (!response.ok) {
+            console.error(`Erro ao baixar XML da CTe ${cteId}: ${response.status}`);
+            errorCount++;
+            continue;
+          }
+          
+          const xmlContent = await response.text();
+          
+          // Gerar o PDF do DACTE
+          const result = await generateDACTE(xmlContent);
+          
+          if (!result.success) {
+            console.error(`Erro ao gerar DACTE da CTe ${cteId}: ${result.error}`);
+            errorCount++;
+            continue;
+          }
+          
+          // Ler o arquivo PDF gerado
+          const fs = await import('fs');
+          const pdfBuffer = fs.readFileSync(result.pdfPath!);
+          
+          // Adicionar PDF ao ZIP
+          zip.addFile(`dacte_${cteId}.pdf`, pdfBuffer);
+          successCount++;
+          
+          // Limpar o arquivo temporário
+          try {
+            fs.unlinkSync(result.pdfPath!);
+          } catch (cleanupError) {
+            console.warn('Erro ao limpar arquivo temporário:', cleanupError);
+          }
+          
+        } catch (error) {
+          console.error(`Erro ao processar CTe ${cteId}:`, error);
+          errorCount++;
+        }
       }
 
-      // Verificar se a resposta é realmente um ZIP
-      const contentType = response.headers.get('content-type');
-      console.log('Content-Type da resposta:', contentType);
-      
+      if (successCount === 0) {
+        return res.status(500).json({ error: 'Nenhum DACTE pôde ser gerado' });
+      }
+
       // Configurar headers para download do ZIP
       res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', 'attachment; filename="dacte_cte.zip"');
       
-      // Retornar o buffer da resposta
-      const buffer = await response.arrayBuffer();
-      console.log('Tamanho do buffer recebido:', buffer.byteLength);
-      res.send(Buffer.from(buffer));
+      // Enviar o ZIP
+      const zipBuffer = zip.toBuffer();
+      console.log(`ZIP gerado com ${successCount} DACTEs (${errorCount} erros)`);
+      res.send(zipBuffer);
       
     } catch (error) {
       console.error('Erro no download em lote de DACTEs CTe:', error);
