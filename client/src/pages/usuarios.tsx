@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Edit, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Plus, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Bell, ExternalLink } from "lucide-react";
+import { Edit, Trash2, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter, Plus, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw, Bell, ExternalLink, Activity } from "lucide-react";
+import { useLocation } from "wouter";
 import { VersionNotificationDialog } from "@/components/VersionNotificationDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -37,6 +38,7 @@ const updateUserSchema = z.object({
 
 export default function UsuariosPage() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   // Estados dos filtros
   const [search, setSearch] = useState("");
@@ -341,6 +343,18 @@ export default function UsuariosPage() {
               <ExternalLink className="w-4 h-4 mr-2" />
               Abrir Ticket
             </Button>
+            
+            {/* Botão Log de Auditoria - apenas para admin e system */}
+            {(currentUser?.user?.type === 'admin' || currentUser?.user?.type === 'system') && (
+              <Button
+                onClick={() => setLocation('/audit-logs')}
+                variant="outline"
+                className="border-green-500/30 text-green-400 hover:bg-green-500/20"
+              >
+                <Activity className="w-4 h-4 mr-2" />
+                LOG DE AUDITORIA
+              </Button>
+            )}
             
             <Button
               onClick={handleRefreshUsuarios}

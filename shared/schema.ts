@@ -14,6 +14,18 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Tabela de auditoria
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  userName: text("user_name").notNull(),
+  action: text("action").notNull(),
+  details: text("details"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -319,3 +331,46 @@ export interface FornecedorResponse {
   totalPages: number;
   limit: number;
 }
+
+// Interfaces para Auditoria
+export const insertAuditLogSchema = createInsertSchema(auditLogs).pick({
+  userId: true,
+  userName: true,
+  action: true,
+  details: true,
+  ipAddress: true,
+  userAgent: true,
+});
+
+export interface AuditLog {
+  id: number;
+  userId: number;
+  userName: string;
+  action: string;
+  details?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  createdAt: Date;
+}
+
+export interface AuditLogFilters {
+  search?: string;
+  userId?: number;
+  dateStart?: string;
+  dateEnd?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: keyof AuditLog;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface AuditLogResponse {
+  logs: AuditLog[];
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type CreateAuditLog = typeof auditLogs.$inferInsert;

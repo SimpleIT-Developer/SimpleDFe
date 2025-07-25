@@ -19,6 +19,7 @@ import * as XLSX from 'xlsx';
 import { CNPJService } from "./services/cnpj-service";
 import { ERPService } from "./services/erp-service";
 import { ERP_CONFIG } from "./config/erp-config";
+import { AuditLogger } from "./audit-logger";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
@@ -56,12 +57,17 @@ function authenticateToken(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Inicializar tabelas no início
+  try {
+    await storage.ensureUsersTableExists();
+    await storage.ensureAuditTableExists();
+  } catch (error) {
+    console.error('Erro ao inicializar tabelas:', error);
+  }
+
   // Register endpoint
   app.post("/api/auth/register", async (req, res) => {
     try {
-      // Verificar e criar tabela de usuários se necessário
-      await storage.ensureUsersTableExists();
-      
       const validatedData = registerSchema.parse(req.body);
       
       // Check if user already exists
@@ -157,9 +163,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Login endpoint
   app.post("/api/auth/login", async (req, res) => {
     try {
-      // Verificar e criar tabela de usuários se necessário
-      await storage.ensureUsersTableExists();
-      
       const validatedData = loginSchema.parse(req.body);
 
       // Find user by email (case-insensitive)
@@ -408,6 +411,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NFe Recebidas endpoints
   app.get("/api/nfe-recebidas", authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para acesso ao menu
+      await AuditLogger.logMenuAccess(req, "NFe Recebidas");
+      
       console.log("NFe Recebidas - Starting request");
       const {
         search = "",
@@ -568,6 +574,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NFSe Recebidas endpoints
   app.get("/api/nfse-recebidas", authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para acesso ao menu
+      await AuditLogger.logMenuAccess(req, "NFSe Recebidas");
       const {
         search = "",
         status = "all",
@@ -660,6 +668,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Usuários endpoints - PostgreSQL com Drizzle e controle de acesso
   app.get("/api/usuarios", authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para acesso ao menu
+      await AuditLogger.logMenuAccess(req, "Usuários");
       const {
         search = "",
         status = "all", 
@@ -829,6 +839,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error(`❌ Erro crítico ao enviar email para ${newUser.email}:`, error);
         }
       });
+
+      // Log de auditoria para criação de usuário
+      await AuditLogger.logUserCreation(req, nome, email);
 
       res.status(201).json({ 
         message: "Usuário criado com sucesso",
@@ -1452,6 +1465,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para download em lote de XMLs da NFe
   app.post('/api/nfe-bulk-download-xml', authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para download em lote
+      const { ids } = req.body;
+      await AuditLogger.logBulkDownload(req, "NFe", "XML", ids?.length || 0);
       const { docIds } = req.body;
       
       if (!docIds || !Array.isArray(docIds) || docIds.length === 0) {
@@ -1487,6 +1503,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para download em lote de DANFEs da NFe
   app.post('/api/nfe-bulk-download-danfe', authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para download em lote
+      const { ids } = req.body;
+      await AuditLogger.logBulkDownload(req, "NFe", "DANFE", ids?.length || 0);
       const { docIds } = req.body;
       
       if (!docIds || !Array.isArray(docIds) || docIds.length === 0) {
@@ -1522,7 +1541,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para download em lote de XMLs da NFSe
   app.post('/api/nfse-bulk-download-xml', authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para download em lote
       const { nfseIds } = req.body;
+      await AuditLogger.logBulkDownload(req, "NFSe", "XML", nfseIds?.length || 0);
       
       if (!nfseIds || !Array.isArray(nfseIds) || nfseIds.length === 0) {
         return res.status(400).json({ error: 'IDs das NFSe são obrigatórios' });
@@ -1583,7 +1604,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para download em lote de DANFSe
   app.post('/api/nfse-bulk-download-danfse', authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para download em lote
       const { nfseIds } = req.body;
+      await AuditLogger.logBulkDownload(req, "NFSe", "DANFSe", nfseIds?.length || 0);
       
       if (!nfseIds || !Array.isArray(nfseIds) || nfseIds.length === 0) {
         return res.status(400).json({ error: 'IDs das NFSe são obrigatórios' });
@@ -2037,6 +2060,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CTe Recebidas endpoints
   app.get("/api/cte-recebidas", authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para acesso ao menu
+      await AuditLogger.logMenuAccess(req, "CTe Recebidas");
       console.log("CTe Recebidas - Starting request");
       const {
         search = "",
@@ -2349,7 +2374,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rota para download em lote de DACTEs da CTe
   app.post('/api/cte-bulk-download-dacte', authenticateToken, async (req: any, res) => {
     try {
+      // Log de auditoria para download em lote
       const { cteIds } = req.body;
+      await AuditLogger.logBulkDownload(req, "CTe", "DACTE", cteIds?.length || 0);
       
       if (!cteIds || !Array.isArray(cteIds) || cteIds.length === 0) {
         return res.status(400).json({ error: 'IDs das CTe são obrigatórios' });
@@ -3722,6 +3749,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       console.error("Erro no teste de email:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // ===== ROTAS DE AUDITORIA =====
+  
+  // Rota para buscar logs de auditoria (apenas admins e system)
+  app.get("/api/audit-logs", authenticateToken, async (req: any, res) => {
+    try {
+      const userType = req.user.type || 'user';
+      
+      // Apenas admins e system podem ver logs
+      if (userType !== 'admin' && userType !== 'system') {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const filters = {
+        search: req.query.search as string,
+        userId: req.query.userId ? parseInt(req.query.userId as string) : undefined,
+        dateStart: req.query.dateStart as string,
+        dateEnd: req.query.dateEnd as string,
+        page: req.query.page ? parseInt(req.query.page as string) : 1,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
+        sortBy: req.query.sortBy as any || 'createdAt',
+        sortOrder: req.query.sortOrder as 'asc' | 'desc' || 'desc'
+      };
+
+      const logs = await storage.getAuditLogs(filters);
+      res.json(logs);
+    } catch (error) {
+      console.error("Erro ao buscar logs de auditoria:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
