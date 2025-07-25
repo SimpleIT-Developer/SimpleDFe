@@ -125,4 +125,14 @@ export class AuditLogger {
       details: `Usuário: ${deletedUserName} (ID: ${deletedUserId})`
     });
   }
+
+  static async logDocumentView(req: Request & { user?: any }, docType: string, docId: string, viewType: string): Promise<void> {
+    if (!req.user) return;
+    await this.log(req, {
+      userId: req.user.id,
+      userName: req.user.name || req.user.username,
+      action: `Visualizou ${viewType} do documento ${docType}`,
+      details: `Documento ID: ${docId}`
+    });
+  }
 }

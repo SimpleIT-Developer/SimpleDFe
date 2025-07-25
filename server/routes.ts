@@ -2020,6 +2020,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { doc_id } = req.params;
       
+      // Log de auditoria para visualização de eventos NFe
+      await AuditLogger.logDocumentView(req, "NFe", doc_id, "Eventos");
+      
       // Primeiro buscar a NFe para obter doc_id_company e doc_chave
       const nfeQuery = `
         SELECT doc_id_company, doc_chave 
@@ -2303,6 +2306,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { cte_id } = req.params;
       
+      // Log de auditoria para visualização de DACTE
+      await AuditLogger.logDocumentView(req, "CTe", cte_id, "DACTE");
+      
       // Log de auditoria para impressão de DACTE
       await AuditLogger.logDocumentDownload(req, "CTe", cte_id, "DACTE");
       
@@ -2439,6 +2445,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { cte_id } = req.params;
       
+      // Log de auditoria para visualização de eventos CTe
+      await AuditLogger.logDocumentView(req, "CTe", cte_id, "Eventos");
+      
       // Primeiro buscar a CTe para obter cte_id_company e cte_chave_acesso
       const cteQuery = `
         SELECT cte_id_company, cte_chave_acesso 
@@ -2523,6 +2532,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { doc_id } = req.params;
       
+      // Log de auditoria para visualização de DANFE
+      await AuditLogger.logDocumentView(req, "NFe", doc_id, "DANFE");
+      
       // Log de auditoria para impressão de DANFE
       await AuditLogger.logDocumentDownload(req, "NFe", doc_id, "DANFE");
       
@@ -2568,6 +2580,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nfse-danfse/:nfse_id", authenticateToken, async (req: any, res) => {
     try {
       const { nfse_id } = req.params;
+      
+      // Log de auditoria para visualização de DANFSe
+      await AuditLogger.logDocumentView(req, "NFSe", nfse_id, "DANFSe");
       
       // Log de auditoria para impressão de DANFSe
       await AuditLogger.logDocumentDownload(req, "NFSe", nfse_id, "DANFSe");
