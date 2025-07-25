@@ -18,7 +18,7 @@ export default function AuditLogsPage() {
   });
 
   // Verificar se o usuário tem permissão (ADMIN ou SYSTEM)
-  if (currentUser && currentUser.tipo !== 'ADMIN' && currentUser.tipo !== 'SYSTEM') {
+  if (currentUser && currentUser.tipo !== 'admin' && currentUser.tipo !== 'system') {
     return (
       <Layout>
         <div className="container mx-auto p-6">
