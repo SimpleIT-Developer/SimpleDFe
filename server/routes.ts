@@ -2222,6 +2222,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cte-download/:cte_id", authenticateToken, async (req: any, res) => {
     try {
       const { cte_id } = req.params;
+      
+      // Log de auditoria para download individual de XML CTe
+      await AuditLogger.logDocumentDownload(req, "CTe", cte_id, "XML");
+      
       const apiUrl = `https://robolbv.simpledfe.com.br/api/cte_download_api.php?cte_id=${cte_id}`;
       
       // Fazer a chamada para a API externa
@@ -2261,6 +2265,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { cteIds } = req.body;
       
+      // Log de auditoria para download em lote
+      await AuditLogger.logBulkDownload(req, "CTe", "XML", cteIds?.length || 0);
+      
       if (!cteIds || !Array.isArray(cteIds) || cteIds.length === 0) {
         return res.status(400).json({ error: 'IDs das CTe são obrigatórios' });
       }
@@ -2295,6 +2302,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/cte-dacte/:cte_id", authenticateToken, async (req: any, res) => {
     try {
       const { cte_id } = req.params;
+      
+      // Log de auditoria para impressão de DACTE
+      await AuditLogger.logDocumentDownload(req, "CTe", cte_id, "DACTE");
       
       // Primeiro, baixar o XML da API externa
       const apiUrl = `https://robolbv.simpledfe.com.br/api/cte_download_api.php?cte_id=${cte_id}`;
@@ -2335,41 +2345,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Erro ao gerar DACTE:", error);
       res.status(500).json({ message: "Erro ao gerar DACTE da CTe" });
-    }
-  });
-
-  // Rota para download em lote de XMLs da CTe
-  app.post('/api/cte-bulk-download-xml', authenticateToken, async (req: any, res) => {
-    try {
-      const { cteIds } = req.body;
-      
-      if (!cteIds || !Array.isArray(cteIds) || cteIds.length === 0) {
-        return res.status(400).json({ error: 'IDs das CTe são obrigatórios' });
-      }
-
-      const idsString = cteIds.join(',');
-      const apiUrl = `http://robolbv.simpledfe.com.br/api/pegar_varios_cte.php?id=${idsString}`;
-      
-      console.log('Fazendo requisição para:', apiUrl);
-      
-      // Fazer requisição para a API externa
-      const response = await fetch(apiUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Erro na API externa: ${response.status}`);
-      }
-
-      // Configurar headers para download do ZIP
-      res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', 'attachment; filename="xml_cte.zip"');
-      
-      // Retornar o buffer da resposta
-      const buffer = await response.arrayBuffer();
-      res.send(Buffer.from(buffer));
-      
-    } catch (error) {
-      console.error('Erro no download em lote de XMLs CTe:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
     }
   });
 
@@ -2548,6 +2523,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { doc_id } = req.params;
       
+      // Log de auditoria para impressão de DANFE
+      await AuditLogger.logDocumentDownload(req, "NFe", doc_id, "DANFE");
+      
       // Primeiro, baixar o XML da API externa
       const apiUrl = `https://robolbv.simpledfe.com.br/api/doc_download_api.php?doc_id=${doc_id}`;
       const response = await fetch(apiUrl);
@@ -2590,6 +2568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nfse-danfse/:nfse_id", authenticateToken, async (req: any, res) => {
     try {
       const { nfse_id } = req.params;
+      
+      // Log de auditoria para impressão de DANFSe
+      await AuditLogger.logDocumentDownload(req, "NFSe", nfse_id, "DANFSe");
       console.log('DANFSe - Requisição recebida para NFSe ID:', nfse_id);
       
       // Buscar o XML da NFSe na base de dados MySQL
