@@ -1,3 +1,10 @@
+Data: 23/07/2025
+Ticket: #
+Tipo: ROADMAP
+Descrição: Nova funcionalidade de captura automática de CTe (Conhecimento de Transporte Eletrônico) implementada no sistema SimpleDFe.
+A ferramenta permite que os CT-es emitidos contra o CNPJ da empresa sejam consultados, baixados e armazenados automaticamente, otimizando o controle fiscal e garantindo integração futura com o ERP TOTVS RM.
+A captura contempla o modelo 57 (transporte de cargas)
+
 Data: 17/07/2025
 Ticket: #
 Tipo: ROADMAP
