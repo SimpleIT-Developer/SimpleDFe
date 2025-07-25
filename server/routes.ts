@@ -1466,9 +1466,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/nfe-bulk-download-xml', authenticateToken, async (req: any, res) => {
     try {
       // Log de auditoria para download em lote
-      const { ids } = req.body;
-      await AuditLogger.logBulkDownload(req, "NFe", "XML", ids?.length || 0);
       const { docIds } = req.body;
+      await AuditLogger.logBulkDownload(req, "NFe", "XML", docIds?.length || 0);
       
       if (!docIds || !Array.isArray(docIds) || docIds.length === 0) {
         return res.status(400).json({ error: 'IDs dos documentos são obrigatórios' });
@@ -1504,9 +1503,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/nfe-bulk-download-danfe', authenticateToken, async (req: any, res) => {
     try {
       // Log de auditoria para download em lote
-      const { ids } = req.body;
-      await AuditLogger.logBulkDownload(req, "NFe", "DANFE", ids?.length || 0);
       const { docIds } = req.body;
+      await AuditLogger.logBulkDownload(req, "NFe", "DANFE", docIds?.length || 0);
       
       if (!docIds || !Array.isArray(docIds) || docIds.length === 0) {
         return res.status(400).json({ error: 'IDs dos documentos são obrigatórios' });
@@ -3754,6 +3752,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===== ROTAS DE AUDITORIA =====
+  
+  // Rota para testar audit log
+  app.post('/api/test-audit-log', authenticateToken, async (req: any, res) => {
+    try {
+      await AuditLogger.logBulkDownload(req, "NFe", "XML", 5);
+      res.json({ success: true, message: "Log de teste criado com sucesso" });
+    } catch (error) {
+      console.error('Erro no teste de audit log:', error);
+      res.status(500).json({ error: 'Erro ao criar log de teste' });
+    }
+  });
   
   // Rota para buscar logs de auditoria (apenas admins e system)
   app.get("/api/audit-logs", authenticateToken, async (req: any, res) => {
