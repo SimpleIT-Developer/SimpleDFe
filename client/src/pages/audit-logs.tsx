@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,29 @@ import { DateInput } from "@/components/ui/date-input";
 import type { AuditLogResponse, AuditLog } from "@shared/schema";
 
 export default function AuditLogsPage() {
+  // Buscar dados do usuário para verificar permissões
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+  });
+
+  // Verificar se o usuário tem permissão (ADMIN ou SYSTEM)
+  if (currentUser && currentUser.tipo !== 'ADMIN' && currentUser.tipo !== 'SYSTEM') {
+    return (
+      <Layout>
+        <div className="container mx-auto p-6">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="p-6 text-center">
+              <h2 className="text-xl font-semibold mb-2">Acesso Negado</h2>
+              <p className="text-gray-600">
+                Você não tem permissão para acessar os logs de auditoria.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
   const [filters, setfilters] = useState({
     search: "",
     dateStart: "",
@@ -58,24 +82,25 @@ export default function AuditLogsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Log de Auditoria</h1>
-          <p className="text-muted-foreground">
-            Histórico completo de ações dos usuários no sistema
-          </p>
+    <Layout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Log de Auditoria</h1>
+            <p className="text-muted-foreground">
+              Histórico completo de ações dos usuários no sistema
+            </p>
+          </div>
+          <Button
+            onClick={() => refetch()}
+            variant="outline"
+            className="flex items-center gap-2"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
         </div>
-        <Button
-          onClick={() => refetch()}
-          variant="outline"
-          className="flex items-center gap-2"
-          disabled={isLoading}
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
-      </div>
 
       {/* Filtros */}
       <Card>
@@ -207,6 +232,7 @@ export default function AuditLogsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </Layout>
   );
 }
