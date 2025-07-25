@@ -1978,6 +1978,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nfe-download/:doc_id", authenticateToken, async (req: any, res) => {
     try {
       const { doc_id } = req.params;
+      
+      // Log de auditoria para download individual
+      await AuditLogger.logDocumentDownload(req, "NFe", doc_id, "XML");
+      
       const apiUrl = `https://robolbv.simpledfe.com.br/api/doc_download_api.php?doc_id=${doc_id}`;
       
       // Fazer a chamada para a API externa
@@ -2503,6 +2507,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nfse-download/:nfse_id", authenticateToken, async (req: any, res) => {
     try {
       const { nfse_id } = req.params;
+      
+      // Log de auditoria para download individual
+      await AuditLogger.logDocumentDownload(req, "NFSe", nfse_id, "XML");
       const apiUrl = `https://robolbv.simpledfe.com.br/api/nfse_download_api.php?nfse_id=${nfse_id}`;
       
       // Fazer a chamada para a API externa

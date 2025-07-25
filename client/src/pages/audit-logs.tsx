@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Search, User, Clock, Activity } from "lucide-react";
+import { Calendar, Search, User, Clock, Activity, RefreshCw } from "lucide-react";
 import { DateInput } from "@/components/ui/date-input";
 import type { AuditLogResponse, AuditLog } from "@shared/schema";
 
@@ -18,10 +18,17 @@ export default function AuditLogsPage() {
     limit: 50
   });
 
-  const { data: logsData, isLoading } = useQuery<AuditLogResponse>({
+  const { data: logsData, isLoading, refetch } = useQuery<AuditLogResponse>({
     queryKey: ['/api/audit-logs', filters],
-    enabled: true
+    enabled: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000 // Atualiza a cada 30 segundos
   });
+
+  // Atualizar dados quando a página for carregada
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const handleFilterChange = (field: string, value: string | number) => {
     setfilters(prev => ({
@@ -59,6 +66,15 @@ export default function AuditLogsPage() {
             Histórico completo de ações dos usuários no sistema
           </p>
         </div>
+        <Button
+          onClick={() => refetch()}
+          variant="outline"
+          className="flex items-center gap-2"
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Atualizar
+        </Button>
       </div>
 
       {/* Filtros */}
