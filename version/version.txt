@@ -1,4 +1,9 @@
 Data: 23/07/2025
+Ticket: SDFE
+Tipo: Melhoria
+
+
+Data: 23/07/2025
 Ticket: #
 Tipo: ROADMAP
 Descrição: Nova funcionalidade de captura automática de CTe (Conhecimento de Transporte Eletrônico) implementada no sistema SimpleDFe.

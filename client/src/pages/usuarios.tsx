@@ -820,9 +820,13 @@ export default function UsuariosPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">Tipo</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                        disabled={currentUser?.user?.type === 'user'}
+                      >
                         <FormControl>
-                          <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                          <SelectTrigger className={`bg-white/10 border-white/20 text-white ${currentUser?.user?.type === 'user' ? 'opacity-50 cursor-not-allowed' : ''}`}>
                             <SelectValue placeholder="Selecione o tipo" />
                           </SelectTrigger>
                         </FormControl>
@@ -832,6 +836,11 @@ export default function UsuariosPage() {
                           <SelectItem value="system">Sistema</SelectItem>
                         </SelectContent>
                       </Select>
+                      {currentUser?.user?.type === 'user' && (
+                        <p className="text-yellow-400 text-sm mt-1">
+                          Usuários do tipo USER não podem alterar o tipo de usuário
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
