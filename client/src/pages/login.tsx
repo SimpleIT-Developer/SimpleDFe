@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { loginSchema, type LoginData } from "@shared/schema";
+import { loginSchema, forgotPasswordSchema, type LoginData, type ForgotPasswordData } from "@shared/schema";
 import { login } from "@/lib/auth";
 import { AnimatedLogo } from "@/components/animated-logo";
 import { Button } from "@/components/ui/button";
@@ -12,18 +12,29 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [rememberMe, setRememberMe] = useState(false);
   const [showRegisterLink, setShowRegisterLink] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
+    },
+  });
+
+  const forgotPasswordForm = useForm<ForgotPasswordData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -63,8 +74,46 @@ export default function LoginPage() {
     },
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (data: ForgotPasswordData) => {
+      const res = await apiRequest('POST', '/api/auth/forgot-password', data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      setForgotPasswordSuccess(true);
+      toast({
+        title: "Email enviado!",
+        description: "Se o email existir em nossa base, você receberá um link para redefinir sua senha.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro interno do servidor",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: LoginData) => {
     loginMutation.mutate(data);
+  };
+
+  const onForgotPasswordSubmit = (data: ForgotPasswordData) => {
+    forgotPasswordMutation.mutate(data);
+  };
+
+  const handleForgotPasswordClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowForgotPasswordModal(true);
+    setForgotPasswordSuccess(false);
+    forgotPasswordForm.reset();
+  };
+
+  const handleCloseForgotPasswordModal = () => {
+    setShowForgotPasswordModal(false);
+    setForgotPasswordSuccess(false);
+    forgotPasswordForm.reset();
   };
 
   return (
@@ -139,12 +188,13 @@ export default function LoginPage() {
                       Lembrar-me
                     </Label>
                   </div>
-                  <a 
-                    href="#" 
+                  <button 
+                    type="button"
+                    onClick={handleForgotPasswordClick}
                     className="text-sm text-primary hover:text-secondary transition-colors"
                   >
                     Esqueceu a senha?
-                  </a>
+                  </button>
                 </div>
 
                 <Button
@@ -171,6 +221,95 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Forgot Password Modal */}
+        <Dialog open={showForgotPasswordModal} onOpenChange={setShowForgotPasswordModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <span className="text-2xl">🔐</span>
+                Esqueceu sua senha?
+              </DialogTitle>
+              <DialogDescription>
+                {forgotPasswordSuccess ? (
+                  "Verifique seu email para redefinir sua senha."
+                ) : (
+                  "Digite seu email para receber um link de redefinição de senha."
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {forgotPasswordSuccess ? (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-green-600 text-xl">✅</span>
+                    <div>
+                      <p className="text-green-800 font-medium">Email enviado com sucesso!</p>
+                      <p className="text-green-600 text-sm mt-1">
+                        Se o email existir em nossa base, você receberá um link para redefinir sua senha.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <span className="text-yellow-600 text-lg mt-0.5">⚠️</span>
+                    <div>
+                      <p className="text-yellow-800 font-medium">Lembre-se:</p>
+                      <ul className="text-yellow-700 text-sm mt-1 space-y-1">
+                        <li>• O link é válido por apenas 1 hora</li>
+                        <li>• Verifique sua caixa de spam</li>
+                        <li>• Nunca compartilhe o link com outras pessoas</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleCloseForgotPasswordModal}
+                  className="w-full"
+                >
+                  Fechar
+                </Button>
+              </div>
+            ) : (
+              <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
+                <div>
+                  <Label htmlFor="forgot-email">Email</Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    {...forgotPasswordForm.register("email")}
+                  />
+                  {forgotPasswordForm.formState.errors.email && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {forgotPasswordForm.formState.errors.email.message}
+                    </p>
+                  )}
+                </div>
+                <div className="flex space-x-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCloseForgotPasswordModal}
+                    className="flex-1"
+                    disabled={forgotPasswordMutation.isPending}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={forgotPasswordMutation.isPending}
+                    className="flex-1"
+                  >
+                    {forgotPasswordMutation.isPending ? "Enviando..." : "Enviar"}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

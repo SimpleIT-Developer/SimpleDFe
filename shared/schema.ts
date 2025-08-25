@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   type: text("type"),
   status: integer("status").default(1),
   showVersionNotifications: boolean("show_version_notifications").default(true).notNull(),
+  resetToken: text("reset_token"),
+  resetTokenExpires: timestamp("reset_token_expires"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -41,6 +43,19 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Email inválido"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Token é obrigatório"),
+  password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não coincidem",
+  path: ["confirmPassword"],
+});
+
 export const registerSchema = insertUserSchema.extend({
   password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
   confirmPassword: z.string(),
@@ -54,6 +69,8 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type LoginData = z.infer<typeof loginSchema>;
 export type RegisterData = z.infer<typeof registerSchema>;
+export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 
 // Types for Company (MySQL table)
 export interface Company {

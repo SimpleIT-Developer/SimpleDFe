@@ -3,12 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { loginSchema, registerSchema, users, type Company, type CompanyFilters, type CompanyResponse, type NFeRecebida, type NFeFilters, type NFeResponse, type NFSeRecebida, type NFSeResponse, type CTeRecebida, type CTeFilters, type CTeResponse, type EventoCTe, type Usuario, type UsuarioResponse, type FornecedorResponse } from "@shared/schema";
+import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema, users, type Company, type CompanyFilters, type CompanyResponse, type NFeRecebida, type NFeFilters, type NFeResponse, type NFSeRecebida, type NFSeResponse, type CTeRecebida, type CTeFilters, type CTeResponse, type EventoCTe, type Usuario, type UsuarioResponse, type FornecedorResponse } from "@shared/schema";
 import { z } from "zod";
 import { mysqlPool, testMysqlConnection } from "./mysql-config";
 import { db } from "./db";
 import { sendWelcomeEmail } from "./email-service";
-import { sendWelcomeEmail as sendWelcomeEmailResend } from "./resend-service";
+import { sendWelcomeEmail as sendWelcomeEmailResend, sendResetPasswordEmail } from "./resend-service";
+import * as crypto from "crypto";
 
 import { eq, ilike, or, and, count, desc, asc } from "drizzle-orm";
 import { generateNfeRelatorioPDF } from "./nfe-relatorio-generator";
@@ -266,6 +267,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Logout endpoint (client-side handles token removal)
   app.post("/api/auth/logout", authenticateToken, (req, res) => {
     res.json({ message: "Logout realizado com sucesso" });
+  });
+
+  // Forgot password endpoint
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const validatedData = forgotPasswordSchema.parse(req.body);
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(validatedData.email.toLowerCase());
+      if (!user) {
+        // Always return success to prevent email enumeration
+        return res.json({ 
+          message: "Se o email existir em nossa base, você receberá um link para redefinir sua senha" 
+        });
+      }
+
+      // Generate secure reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hour from now
+      
+      // Save reset token to database
+      await storage.updateUserResetToken(user.email, resetToken, resetTokenExpires);
+      
+      // Send reset email in background
+      setImmediate(async () => {
+        try {
+          console.log(`📧 Iniciando envio de email de reset de senha para: ${user.email}`);
+          
+          const emailData = {
+            nome: user.name,
+            email: user.email,
+            resetToken,
+            baseUrl: process.env.NODE_ENV === 'development' ? `http://localhost:5000` : 'https://www.simpledfe.com.br'
+          };
+
+          const emailSent = await sendResetPasswordEmail(emailData);
+          
+          if (emailSent) {
+            console.log(`✅ Email de reset enviado com sucesso para: ${user.email}`);
+          } else {
+            console.error(`❌ Falha no envio do email de reset para: ${user.email}`);
+          }
+        } catch (error) {
+          console.error(`❌ Erro crítico ao enviar email de reset para ${user.email}:`, error);
+        }
+      });
+      
+      res.json({ 
+        message: "Se o email existir em nossa base, você receberá um link para redefinir sua senha" 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos", 
+          errors: error.errors 
+        });
+      }
+      console.error("Forgot password error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Reset password endpoint
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const validatedData = resetPasswordSchema.parse(req.body);
+      
+      // Find user by reset token
+      const user = await storage.getUserByResetToken(validatedData.token);
+      if (!user) {
+        return res.status(400).json({ 
+          message: "Token inválido ou expirado" 
+        });
+      }
+
+      // Hash new password
+      const saltRounds = 12;
+      const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
+      
+      // Update password and clear reset token
+      await storage.updateUserPassword(user.id, hashedPassword);
+      await storage.clearUserResetToken(user.id);
+      
+      res.json({ 
+        message: "Senha redefinida com sucesso" 
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos", 
+          errors: error.errors 
+        });
+      }
+      console.error("Reset password error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  // Verify reset token endpoint
+  app.get("/api/auth/verify-reset-token/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      
+      const user = await storage.getUserByResetToken(token);
+      if (!user) {
+        return res.status(400).json({ 
+          valid: false,
+          message: "Token inválido ou expirado" 
+        });
+      }
+      
+      res.json({ 
+        valid: true,
+        email: user.email,
+        name: user.name
+      });
+    } catch (error) {
+      console.error("Verify reset token error:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
   });
 
   // Test MySQL connection on startup

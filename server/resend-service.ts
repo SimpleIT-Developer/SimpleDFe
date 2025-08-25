@@ -9,6 +9,13 @@ interface WelcomeEmailData {
   baseUrl?: string;
 }
 
+interface ResetPasswordEmailData {
+  nome: string;
+  email: string;
+  resetToken: string;
+  baseUrl?: string;
+}
+
 function createWelcomeEmailHTML(data: WelcomeEmailData): string {
   return `
 <!DOCTYPE html>
@@ -303,6 +310,272 @@ contato@simpledfe.com.br
       console.error('⏱️ Limite de envio atingido - tente novamente mais tarde');
     } else if (error.message?.includes('domain') || error.message?.includes('sender')) {
       console.error('🌐 Erro de domínio - verifique a configuração do remetente no Resend');
+    }
+    
+    return false;
+  }
+}
+
+function createResetPasswordEmailHTML(data: ResetPasswordEmailData): string {
+  const resetUrl = `${data.baseUrl || 'https://www.simpledfe.com.br'}/reset-password?token=${data.resetToken}`;
+  
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir Senha - SimpleDFe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8fafc;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #a855f7 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .reset-title {
+            color: #581c87;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .reset-text {
+            font-size: 16px;
+            margin-bottom: 25px;
+            color: #555;
+        }
+        .reset-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #a855f7 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(88, 28, 135, 0.3);
+            transition: transform 0.2s;
+        }
+        .reset-button:hover {
+            transform: translateY(-2px);
+        }
+        .reset-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-left: 4px solid #581c87;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+        }
+        .security-note {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #92400e;
+        }
+        .footer {
+            background-color: #f3f4f6;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .support-info {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 10px 0;
+        }
+        .company-name {
+            color: #581c87;
+            font-weight: bold;
+        }
+        .url {
+            color: #581c87;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .emoji {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        .token-display {
+            font-family: 'Courier New', monospace;
+            background-color: #f1f5f9;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            word-break: break-all;
+            font-size: 14px;
+            color: #581c87;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SimpleDFe</div>
+            <p class="subtitle">Gestão Inteligente de Documentos Fiscais</p>
+        </div>
+        
+        <div class="content">
+            <h1 class="reset-title"><span class="emoji">🔐</span>Redefinir sua senha</h1>
+            
+            <p class="reset-text">
+                Olá <strong>${data.nome}</strong>! Recebemos uma solicitação para redefinir a senha da sua conta no SimpleDFe.
+            </p>
+            
+            <div class="reset-box">
+                <p style="margin-bottom: 15px; font-weight: bold; color: #581c87;">Clique no botão abaixo para redefinir sua senha:</p>
+                <div style="text-align: center;">
+                    <a href="${resetUrl}" class="reset-button">🔑 Redefinir Senha</a>
+                </div>
+            </div>
+            
+            <p class="reset-text" style="font-size: 14px; color: #6b7280;">
+                Ou copie e cole o link abaixo no seu navegador:
+            </p>
+            <div class="token-display">
+                ${resetUrl}
+            </div>
+            
+            <div class="security-note">
+                <strong>⚠️ Importante:</strong>
+                <ul style="margin: 10px 0 0 20px; font-size: 14px;">
+                    <li>Este link é válido por apenas 1 hora</li>
+                    <li>Se você não solicitou esta redefinição, ignore este email</li>
+                    <li>Nunca compartilhe este link com outras pessoas</li>
+                </ul>
+            </div>
+            
+            <p class="reset-text" style="font-size: 14px; color: #6b7280;">
+                Se você não conseguir clicar no botão, copie e cole o link completo no seu navegador.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <div style="color: #581c87; font-weight: bold; margin-bottom: 12px; font-size: 16px;">🆘 Suporte e ajuda</div>
+            <p class="support-info">Se precisar de qualquer apoio, conte com nosso time!</p>
+            <div class="support-info">
+                📧 <a href="mailto:contato@simpledfe.com.br" class="url">contato@simpledfe.com.br</a><br>
+                📞 (11) 94498-7584
+            </div>
+            <br>
+            <p class="support-info">
+                © 2024 <span class="company-name">SimpleDFe</span>. Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+}
+
+export async function sendResetPasswordEmail(data: ResetPasswordEmailData): Promise<boolean> {
+  // Validação dos dados obrigatórios
+  if (!data.nome || !data.email || !data.resetToken) {
+    console.error('❌ Dados obrigatórios não fornecidos - nome, email e resetToken são necessários');
+    return false;
+  }
+
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ RESEND_API_KEY não configurada - email não pode ser enviado');
+    return false;
+  }
+
+  try {
+    console.log(`📧 Preparando envio de email de reset de senha para: ${data.email}`);
+    
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const htmlContent = createResetPasswordEmailHTML(data);
+    
+    // Validar email antes de enviar
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      console.error(`❌ Email inválido fornecido: ${data.email}`);
+      return false;
+    }
+
+    console.log(`📤 Enviando email de reset de senha para: ${data.email}`);
+    
+    const resetUrl = `${data.baseUrl || 'https://www.simpledfe.com.br'}/reset-password?token=${data.resetToken}`;
+    
+    const emailPayload = {
+      from: 'SimpleDFe <simpledfe@simpleit.com.br>',
+      to: [data.email],
+      subject: 'Redefinir senha - SimpleDFe',
+      html: htmlContent,
+      text: `Redefinir senha - SimpleDFe
+      
+Olá ${data.nome}!
+
+Recebemos uma solicitação para redefinir a senha da sua conta no SimpleDFe.
+
+Clique no link abaixo para redefinir sua senha:
+${resetUrl}
+
+Importante:
+- Este link é válido por apenas 1 hora
+- Se você não solicitou esta redefinição, ignore este email
+- Nunca compartilhe este link com outras pessoas
+
+Equipe SimpleDFe
+contato@simpledfe.com.br
+(11) 94498-7584`
+    };
+
+    const result = await resend.emails.send(emailPayload);
+
+    if (result.data?.id) {
+      console.log(`✅ Email de reset enviado com sucesso - ID: ${result.data.id} para: ${data.email}`);
+      return true;
+    } else if (result.error) {
+      console.error(`❌ Erro do Resend:`, result.error);
+      return false;
+    } else {
+      console.warn(`⚠️ Email enviado mas resposta inesperada:`, result);
+      return true; // Considerar sucesso se não há erro explícito
+    }
+  } catch (error: any) {
+    console.error(`❌ Erro crítico ao enviar email de reset para ${data.email}:`);
+    console.error(`   Mensagem: ${error.message}`);
+    console.error(`   Tipo: ${error.name}`);
+    
+    if (error.response?.data) {
+      console.error(`   Resposta da API:`, error.response.data);
     }
     
     return false;

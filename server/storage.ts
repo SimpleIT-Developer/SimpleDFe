@@ -1,6 +1,6 @@
 import { users, auditLogs, type User, type InsertUser, type AuditLog, type CreateAuditLog, type AuditLogFilters, type AuditLogResponse } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, count, sql, and, gte, lte, ilike, or } from "drizzle-orm";
+import { eq, desc, count, sql, and, gte, lte, ilike, or, gt } from "drizzle-orm";
 import { pool } from "./db";
 
 export interface IStorage {
@@ -9,6 +9,11 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
   ensureUsersTableExists(): Promise<void>;
+  // Métodos de reset de senha
+  updateUserResetToken(email: string, token: string, expires: Date): Promise<void>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
+  clearUserResetToken(userId: number): Promise<void>;
+  updateUserPassword(userId: number, hashedPassword: string): Promise<void>;
   // Métodos de auditoria
   createAuditLog(auditLog: CreateAuditLog): Promise<AuditLog>;
   getAuditLogs(filters?: AuditLogFilters): Promise<AuditLogResponse>;
@@ -39,6 +44,46 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async updateUserResetToken(email: string, token: string, expires: Date): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        resetToken: token, 
+        resetTokenExpires: expires 
+      })
+      .where(eq(users.email, email.toLowerCase()));
+  }
+
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.resetToken, token),
+          gt(users.resetTokenExpires, new Date())
+        )
+      );
+    return user || undefined;
+  }
+
+  async clearUserResetToken(userId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        resetToken: null, 
+        resetTokenExpires: null 
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId));
+  }
+
   async ensureUsersTableExists(): Promise<void> {
     try {
       // Verificar se a tabela existe no PostgreSQL
@@ -66,6 +111,8 @@ export class DatabaseStorage implements IStorage {
             type TEXT,
             status INTEGER DEFAULT 1,
             show_version_notifications BOOLEAN DEFAULT true NOT NULL,
+            reset_token TEXT,
+            reset_token_expires TIMESTAMP,
             created_at TIMESTAMP DEFAULT NOW() NOT NULL
           );
         `);
