@@ -836,11 +836,6 @@ export default function UsuariosPage() {
                           <SelectItem value="system">Sistema</SelectItem>
                         </SelectContent>
                       </Select>
-                      {currentUser?.user?.type === 'user' && (
-                        <p className="text-yellow-400 text-sm mt-1">
-                          Usuários do tipo USER não podem alterar o tipo de usuário
-                        </p>
-                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -866,11 +861,6 @@ export default function UsuariosPage() {
                           <SelectItem value="0">Inativo</SelectItem>
                         </SelectContent>
                       </Select>
-                      {currentUser?.user?.type === 'user' && (
-                        <p className="text-yellow-400 text-sm mt-1">
-                          Usuários do tipo USER não podem alterar o status
-                        </p>
-                      )}
                       <FormMessage />
                     </FormItem>
                   )}
