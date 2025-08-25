@@ -1,6 +1,11 @@
 Data: 25/08/2025
 Ticket: SDFE-21
 Tipo: Melhoria
+Descrição: Processo "Esqueceu a senha" ajustado
+
+Data: 25/08/2025
+Ticket: SDFE-21
+Tipo: Melhoria
 Descrição: Ao trocar a senha e deslogar do sistema, só reconhecia a senha depois de dar um F5 na página. Foi ajustado para que o cache seja limpo e as informações novas sejam buscadas no banco de dados.
 
 Data: 25/08/2025
