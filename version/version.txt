@@ -1,7 +1,12 @@
-Data: 23/07/2025
-Ticket: SDFE
+Data: 25/08/2025
+Ticket: SDFE-21
 Tipo: Melhoria
+Descrição: Ao trocar a senha e deslogar do sistema, só reconhecia a senha depois de dar um F5 na página. Foi ajustado para que o cache seja limpo e as informações novas sejam buscadas no banco de dados.
 
+Data: 25/08/2025
+Ticket: SDFE-21
+Tipo: Melhoria
+Descrição: Ao acessar o cadastro de usuário com o usuário do tipo "USER" os campos TIPO e STATUS apesar de não poderem ser alterados eles estavam habilitados. Foi realizado o ajuste desabilitando o acesso a esses campos
 
 Data: 23/07/2025
 Ticket: #

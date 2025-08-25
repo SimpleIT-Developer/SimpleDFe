@@ -1,4 +1,4 @@
-import { apiRequest } from "./queryClient";
+import { apiRequest, queryClient } from "./queryClient";
 
 export interface AuthResponse {
   user: {
@@ -26,25 +26,37 @@ export interface RegisterData {
   type: string;
 }
 
-// Set up axios default header for auth token
+// Store original fetch function
+let originalFetch: typeof window.fetch | null = null;
+
+// Set up default header for auth token
 export function setAuthToken(token: string | null) {
   if (token) {
     localStorage.setItem("authToken", token);
-    // Add token to default headers for future requests
-    const originalFetch = window.fetch;
+    
+    // Store original fetch if not already stored
+    if (!originalFetch) {
+      originalFetch = window.fetch;
+    }
+    
+    // Override fetch to include auth token
     window.fetch = function(input: RequestInfo | URL, init?: RequestInit) {
       const headers = new Headers(init?.headers);
       headers.set('Authorization', `Bearer ${token}`);
       
-      return originalFetch(input, {
+      return originalFetch!(input, {
         ...init,
         headers,
       });
     };
   } else {
     localStorage.removeItem("authToken");
-    // Reset fetch to original
-    delete (window as any).fetch;
+    
+    // Restore original fetch
+    if (originalFetch) {
+      window.fetch = originalFetch;
+      originalFetch = null;
+    }
   }
 }
 
@@ -85,6 +97,10 @@ export async function logout(): Promise<void> {
     // Continue with logout even if API call fails
     console.error("Logout API error:", error);
   } finally {
+    // Clear auth token
     setAuthToken(null);
+    
+    // Clear all query cache to prevent stale data
+    queryClient.clear();
   }
 }
