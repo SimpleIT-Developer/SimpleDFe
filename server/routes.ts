@@ -3,12 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema, users, type Company, type CompanyFilters, type CompanyResponse, type NFeRecebida, type NFeFilters, type NFeResponse, type NFSeRecebida, type NFSeResponse, type CTeRecebida, type CTeFilters, type CTeResponse, type EventoCTe, type Usuario, type UsuarioResponse, type FornecedorResponse } from "@shared/schema";
+import { loginSchema, registerSchema, forgotPasswordSchema, users, type Company, type CompanyFilters, type CompanyResponse, type NFeRecebida, type NFeFilters, type NFeResponse, type NFSeRecebida, type NFSeResponse, type CTeRecebida, type CTeFilters, type CTeResponse, type EventoCTe, type Usuario, type UsuarioResponse, type FornecedorResponse } from "@shared/schema";
 import { z } from "zod";
 import { mysqlPool, testMysqlConnection } from "./mysql-config";
 import { db } from "./db";
 import { sendWelcomeEmail } from "./email-service";
-import { sendWelcomeEmail as sendWelcomeEmailResend, sendResetPasswordEmail } from "./resend-service";
+import { sendWelcomeEmail as sendWelcomeEmailResend } from "./resend-service";
+import { sendNewPasswordEmail } from "./new-password-service";
 import * as crypto from "crypto";
 
 import { eq, ilike, or, and, count, desc, asc } from "drizzle-orm";
@@ -269,7 +270,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Logout realizado com sucesso" });
   });
 
-  // Forgot password endpoint
+  // Generate random password function
+  function generateRandomPassword(length: number = 8): string {
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const symbols = '!@#$%&*';
+    const allChars = uppercase + lowercase + numbers + symbols;
+    
+    let password = '';
+    // Garantir pelo menos um caractere de cada tipo
+    password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+    password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+    password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    password += symbols.charAt(Math.floor(Math.random() * symbols.length));
+    
+    // Preencher o resto aleatoriamente
+    for (let i = password.length; i < length; i++) {
+      password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+    }
+    
+    // Embaralhar a senha
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+  }
+
+  // Forgot password endpoint - Generate new password
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
       const validatedData = forgotPasswordSchema.parse(req.body);
@@ -279,43 +304,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         // Always return success to prevent email enumeration
         return res.json({ 
-          message: "Se o email existir em nossa base, você receberá um link para redefinir sua senha" 
+          message: "Se o email existir em nossa base, você receberá uma nova senha temporária" 
         });
       }
 
-      // Generate secure reset token
-      const resetToken = crypto.randomBytes(32).toString('hex');
-      const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hour from now
+      // Generate new random password
+      const newPassword = generateRandomPassword(10);
       
-      // Save reset token to database
-      await storage.updateUserResetToken(user.email, resetToken, resetTokenExpires);
+      // Hash the new password
+      const saltRounds = 12;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
       
-      // Send reset email in background
+      // Update user password in database
+      await storage.updateUserPassword(user.id, hashedPassword);
+      
+      // Send new password email in background
       setImmediate(async () => {
         try {
-          console.log(`📧 Iniciando envio de email de reset de senha para: ${user.email}`);
+          console.log(`📧 Iniciando envio de email de nova senha para: ${user.email}`);
           
           const emailData = {
             nome: user.name,
             email: user.email,
-            resetToken,
+            novaSenha: newPassword,
             baseUrl: process.env.NODE_ENV === 'development' ? `http://localhost:5000` : 'https://www.simpledfe.com.br'
           };
 
-          const emailSent = await sendResetPasswordEmail(emailData);
+          const emailSent = await sendNewPasswordEmail(emailData);
           
           if (emailSent) {
-            console.log(`✅ Email de reset enviado com sucesso para: ${user.email}`);
+            console.log(`✅ Email de nova senha enviado com sucesso para: ${user.email}`);
           } else {
-            console.error(`❌ Falha no envio do email de reset para: ${user.email}`);
+            console.error(`❌ Falha no envio do email de nova senha para: ${user.email}`);
           }
         } catch (error) {
-          console.error(`❌ Erro crítico ao enviar email de reset para ${user.email}:`, error);
+          console.error(`❌ Erro crítico ao enviar email de nova senha para ${user.email}:`, error);
         }
       });
       
       res.json({ 
-        message: "Se o email existir em nossa base, você receberá um link para redefinir sua senha" 
+        message: "Se o email existir em nossa base, você receberá uma nova senha temporária" 
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -329,65 +357,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reset password endpoint
-  app.post("/api/auth/reset-password", async (req, res) => {
-    try {
-      const validatedData = resetPasswordSchema.parse(req.body);
-      
-      // Find user by reset token
-      const user = await storage.getUserByResetToken(validatedData.token);
-      if (!user) {
-        return res.status(400).json({ 
-          message: "Token inválido ou expirado" 
-        });
-      }
-
-      // Hash new password
-      const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
-      
-      // Update password and clear reset token
-      await storage.updateUserPassword(user.id, hashedPassword);
-      await storage.clearUserResetToken(user.id);
-      
-      res.json({ 
-        message: "Senha redefinida com sucesso" 
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Dados inválidos", 
-          errors: error.errors 
-        });
-      }
-      console.error("Reset password error:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
-
-  // Verify reset token endpoint
-  app.get("/api/auth/verify-reset-token/:token", async (req, res) => {
-    try {
-      const { token } = req.params;
-      
-      const user = await storage.getUserByResetToken(token);
-      if (!user) {
-        return res.status(400).json({ 
-          valid: false,
-          message: "Token inválido ou expirado" 
-        });
-      }
-      
-      res.json({ 
-        valid: true,
-        email: user.email,
-        name: user.name
-      });
-    } catch (error) {
-      console.error("Verify reset token error:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
-    }
-  });
 
   // Test MySQL connection on startup
   await testMysqlConnection();

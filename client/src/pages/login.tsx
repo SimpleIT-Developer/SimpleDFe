@@ -83,7 +83,7 @@ export default function LoginPage() {
       setForgotPasswordSuccess(true);
       toast({
         title: "Email enviado!",
-        description: "Se o email existir em nossa base, você receberá um link para redefinir sua senha.",
+        description: "Se o email existir em nossa base, você receberá uma nova senha temporária.",
       });
     },
     onError: (error: any) => {
@@ -232,9 +232,9 @@ export default function LoginPage() {
               </DialogTitle>
               <DialogDescription>
                 {forgotPasswordSuccess ? (
-                  "Verifique seu email para redefinir sua senha."
+                  "Verifique seu email para receber sua nova senha temporária."
                 ) : (
-                  "Digite seu email para receber um link de redefinição de senha."
+                  "Digite seu email para receber uma nova senha temporária."
                 )}
               </DialogDescription>
             </DialogHeader>
@@ -247,20 +247,21 @@ export default function LoginPage() {
                     <div>
                       <p className="text-green-800 font-medium">Email enviado com sucesso!</p>
                       <p className="text-green-600 text-sm mt-1">
-                        Se o email existir em nossa base, você receberá um link para redefinir sua senha.
+                        Se o email existir em nossa base, você receberá uma nova senha temporária.
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start space-x-3">
-                    <span className="text-yellow-600 text-lg mt-0.5">⚠️</span>
+                    <span className="text-blue-600 text-lg mt-0.5">🔑</span>
                     <div>
-                      <p className="text-yellow-800 font-medium">Lembre-se:</p>
-                      <ul className="text-yellow-700 text-sm mt-1 space-y-1">
-                        <li>• O link é válido por apenas 1 hora</li>
-                        <li>• Verifique sua caixa de spam</li>
-                        <li>• Nunca compartilhe o link com outras pessoas</li>
+                      <p className="text-blue-800 font-medium">Próximos passos:</p>
+                      <ul className="text-blue-700 text-sm mt-1 space-y-1">
+                        <li>• Verifique seu email para receber a nova senha</li>
+                        <li>• Faça login com a senha temporária</li>
+                        <li>• Altere para uma senha de sua preferência</li>
+                        <li>• Verifique sua caixa de spam se necessário</li>
                       </ul>
                     </div>
                   </div>

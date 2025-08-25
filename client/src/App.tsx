@@ -8,7 +8,6 @@ import { initializeAuth } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/protected-route";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
-import ResetPasswordPage from "@/pages/reset-password";
 import LoadingPage from "@/pages/loading";
 import DashboardPage from "@/pages/dashboard";
 import CompaniesPage from "@/pages/companies";
@@ -26,7 +25,6 @@ function Router() {
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/register" component={RegisterPage} />
-      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/loading">
         <ProtectedRoute>
           <LoadingPage />
