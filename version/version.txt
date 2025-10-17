@@ -1,3 +1,7 @@
+Data: 16/10/2025
+Tipo: Melhoria
+Descrição: Foi realizada a migração dos servidores para uma nova infraestrutura, visando otimizar o desempenho das integrações e corrigir instabilidades que vinham ocorrendo em alguns processos do sistema.
+
 Data: 25/08/2025
 Ticket: SDFE-21
 Tipo: Melhoria
