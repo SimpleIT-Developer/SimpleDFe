@@ -2,10 +2,16 @@ import mysql from "mysql2/promise";
 
 // Configurações do MySQL - arquivo único para melhor manutenção
 const mysqlConfig = {
-  host: "45.132.157.52",
-  database: "u994990997_robolbv",
-  user: "u994990997_robolbv",
-  password: "@n@R@quel110987",
+  //host: "45.132.157.52",
+  //database: "u994990997_robolbv",
+  //user: "u994990997_robolbv",
+  //password: "@n@R@quel110987",
+
+  host: "robolbv-do-user-20434178-0.i.db.ondigitalocean.com",
+  database: "robolbv",
+  user: "doadmin",
+  password: "AVNS_hYHs3QwuUxRi67lT1q4",
+  
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
