@@ -413,8 +413,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const [companies] = await mysqlPool.execute(dataQuery, [
         ...searchParams,
-        parseInt(limit),
-        offset
+        String(parseInt(limit)),
+        String(offset)
       ]) as any;
 
       const totalPages = Math.ceil(total / parseInt(limit));
@@ -596,14 +596,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           COALESCE(c.company_name, d.doc_dest_nome) as empresa_nome,
           c.company_cpf_cnpj,
           CASE 
-            WHEN e.eventos_id IS NOT NULL THEN 1 
+            WHEN EXISTS (SELECT 1 FROM eventos e WHERE d.doc_chave = e.eventos_chave AND d.doc_id_company = e.eventos_id_company) THEN 1 
             ELSE 0 
           END as has_evento
         FROM doc d
         LEFT JOIN company c ON d.doc_id_company = c.company_id
-        LEFT JOIN eventos e ON d.doc_chave = e.eventos_chave AND d.doc_id_company = e.eventos_id_company
         ${whereClause}
-        GROUP BY d.doc_id
         ORDER BY ${sortBy.startsWith('doc_') ? 'd.' + sortBy : sortBy} ${sortOrder.toUpperCase()}
         LIMIT ${parseInt(limit)} OFFSET ${offset}
       `;
@@ -1053,7 +1051,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [nfseRecebidasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM nfse') as any;
       const [nfseIntegradasResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM nfse WHERE nfse_status_integracao = 1') as any;
       // Consulta reativada para mostrar estatísticas corretas
-      const [fornecedoresSemERPResult] = await mysqlPool.execute('SELECT COUNT(*) as total FROM simplefcfo WHERE codigo_erp IS NULL OR codigo_erp = ""') as any;
+      const [fornecedoresSemERPResult] = await mysqlPool.execute("SELECT COUNT(*) as total FROM simplefcfo WHERE codigo_erp IS NULL OR codigo_erp = ''") as any;
 
       const stats = {
         totalCNPJ: totalCNPJResult[0]?.total || 0,
@@ -1112,26 +1110,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Consulta dados da tabela DOC (NFe)
       const [docData] = await mysqlPool.execute(`
         SELECT 
-          DATE_FORMAT(doc_date_emi, ?) as date, 
+          DATE_FORMAT(MIN(doc_date_emi), ?) as date, 
           COUNT(*) as count 
         FROM doc 
         WHERE doc_date_emi IS NOT NULL 
           AND doc_date_emi >= DATE_SUB(NOW(), INTERVAL ${interval})
         GROUP BY ${docGroupBy}
-        ORDER BY doc_date_emi DESC
+        ORDER BY MIN(doc_date_emi) DESC
         LIMIT 15
       `, [dateFormat]) as any;
 
       // Consulta dados da tabela NFSE
       const [nfseData] = await mysqlPool.execute(`
         SELECT 
-          DATE_FORMAT(nfse_data_hora, ?) as date, 
+          DATE_FORMAT(MIN(nfse_data_hora), ?) as date, 
           COUNT(*) as count 
         FROM nfse 
         WHERE nfse_data_hora IS NOT NULL 
           AND nfse_data_hora >= DATE_SUB(NOW(), INTERVAL ${interval})
         GROUP BY ${nfseGroupBy}
-        ORDER BY nfse_data_hora DESC
+        ORDER BY MIN(nfse_data_hora) DESC
         LIMIT 15
       `, [dateFormat]) as any;
 
