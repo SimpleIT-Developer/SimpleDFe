@@ -11,10 +11,15 @@ const mysqlConfig = {
   database: "robolbv",
   user: "doadmin",
   password: "AVNS_hYHs3QwuUxRi67lT1q4",
+  port: 25060,
   
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  
+  ssl: {
+    rejectUnauthorized: false
+  },
 };
 
 // Pool de conexões MySQL
