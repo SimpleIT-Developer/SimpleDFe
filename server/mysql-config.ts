@@ -5,7 +5,7 @@ const mysqlConfig = {
   //host: "45.132.157.52",
   //database: "u994990997_robolbv",
   //user: "u994990997_robolbv",
-  //password: "@n@R@quel110987",
+  //password: "",
 
   host: "robolbv-do-user-20434178-0.i.db.ondigitalocean.com",
   database: "robolbv",
